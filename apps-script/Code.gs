@@ -12,7 +12,8 @@ const COL = { id: 0, name: 1, earned: 2, served: 3, at: 4, likes: 5, hash: 6, wo
 
 /* ---------- 讀取：排行榜、作品牆、按讚 ---------- */
 function doGet(e) {
-  const a = (e.parameter || {}).action;
+  e = e || { parameter: {} };   // 在編輯器直接按「執行」時沒有網址參數
+  const a = e.parameter.action || 'top';
   const rows = players_();
   if (a === 'top') {
     const f = e.parameter.field === 'served' ? 'served' : 'earned';
