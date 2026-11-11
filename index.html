@@ -110,7 +110,7 @@ canvas{display:block;width:100%;height:auto;touch-action:none;transform-origin:0
 .actions{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr 1.3fr;gap:6px}
 .actions .btn{padding:10px 2px;font-size:13px;letter-spacing:.02em}
 .actions .btn:disabled{opacity:.4}
-.zoomctl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.zoomctl{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:2}
 .zoomctl button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(46,31,42,.15);background:rgba(253,250,251,.92);font-size:18px;line-height:1;color:var(--ink)}
 .tabs button.on{color:#B0455F;border-bottom-color:#C2607A;background:linear-gradient(180deg,transparent,rgba(194,96,122,.1))}
 .chips button.on{box-shadow:0 0 0 3px rgba(194,96,122,.25)}
@@ -258,6 +258,10 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .resbtns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
 .resextra{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .resextra .btn[hidden]{display:none}
+.modal .card.cardpv{max-height:94vh;overflow:auto;gap:12px;width:min(380px,92vw)}
+.modal .card.cardpv img{height:min(64vh,560px);width:auto;max-width:100%;align-self:center;border:0;border-radius:14px}
+.cardbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cardbtns .btn[hidden]{display:none}
 .res .resbtns{position:sticky;bottom:12px;z-index:3}
 .res .resbtns .btn{box-shadow:0 6px 18px rgba(46,31,42,.2)}
 .res .resbtns .btn.ghost{background:var(--surface)}
@@ -385,7 +389,7 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
     <div class="scores" id="bars"></div>
     <p class="mastery" id="mastery"></p>
     <ul class="notes" id="notes"></ul>
-    <div class="resextra"><button class="btn ghost" id="btnShare">分享小卡</button><button class="btn ghost" id="btnKeep" hidden>存成作品</button></div>
+    <div class="resextra"><button class="btn ghost" id="btnShare">看款式卡</button><button class="btn ghost" id="btnKeep" hidden>存成作品</button></div>
     <div class="resbtns"><button class="btn ghost" id="btnLobby">回大廳</button><button class="btn" id="btnNext">下一位客人</button></div>
   </section>
   <div class="modal" id="acctModal" hidden>
@@ -414,6 +418,17 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
       <h2 id="photoName"></h2>
       <p class="muted" id="photoBy" style="margin:0"></p>
       <button class="btn ghost" id="btnPhotoClose">關閉</button>
+    </div>
+  </div>
+  <div class="modal" id="cardModal" hidden>
+    <div class="card cardpv">
+      <img id="cardImg" alt="款式卡預覽">
+      <div class="cardbtns">
+        <button class="btn" id="btnCardDl">下載卡片</button>
+        <button class="btn ghost" id="btnCardShare">分享</button>
+        <button class="btn ghost" id="btnCardKeep" hidden>存成作品</button>
+        <button class="btn ghost" id="btnCardClose">關閉</button>
+      </div>
     </div>
   </div>
   <div class="modal" id="browserModal" hidden>
@@ -714,8 +729,54 @@ function buildHand(){
   drawHand();buildGloss();rebuild();
 }
 function masked(c,n){raw(c);c.globalCompositeOperation='destination-in';c.drawImage(n.mask,0,0);c.globalCompositeOperation='source-over'}
+// 手枕：畫在手的下面，和手同一層，所以縮放、拖曳都會一起動
+function drawPillow(c){
+  const cx=W*.52,cy=H*.8,rx=W*.45,ry=H*.155;
+  c.save();
+  // 落在桌面上的影子
+  c.fillStyle='rgba(120,70,90,.28)';c.filter='blur(10px)';c.beginPath();c.ellipse(cx,cy+ry*.7,rx*.92,ry*.42,0,0,Math.PI*2);c.fill();c.filter='none';
+  // 枕身：上亮下暗，邊緣微微收進去
+  const body=new Path2D();
+  body.moveTo(cx-rx,cy);
+  body.bezierCurveTo(cx-rx,cy-ry*1.08,cx-rx*.35,cy-ry*1.2,cx,cy-ry*1.12);
+  body.bezierCurveTo(cx+rx*.35,cy-ry*1.2,cx+rx,cy-ry*1.08,cx+rx,cy);
+  body.bezierCurveTo(cx+rx,cy+ry*1.1,cx-rx,cy+ry*1.1,cx-rx,cy);
+  const g=c.createLinearGradient(0,cy-ry*1.2,0,cy+ry);
+  g.addColorStop(0,'#FFFFFF');g.addColorStop(.4,'#F7E2E9');g.addColorStop(.8,'#E7C6D2');g.addColorStop(1,'#CFA7B6');
+  c.fillStyle=g;c.fill(body);
+  c.save();c.clip(body);
+  // 手壓下去的凹陷：中間偏上的一團陰影
+  const dent=c.createRadialGradient(cx+W*.02,cy-ry*.62,4,cx+W*.02,cy-ry*.45,rx*.6);
+  dent.addColorStop(0,'rgba(150,95,115,.38)');dent.addColorStop(.55,'rgba(170,115,135,.14)');dent.addColorStop(1,'rgba(170,115,135,0)');
+  c.fillStyle=dent;c.fillRect(cx-rx,cy-ry*1.3,rx*2,ry*2.4);
+  // 凹陷邊緣被擠起來的亮邊
+  c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=5;c.filter='blur(3px)';
+  c.beginPath();c.ellipse(cx+W*.02,cy-ry*.5,rx*.62,ry*.62,0,Math.PI*1.05,Math.PI*1.95);c.stroke();
+  // 從凹陷往外散開的褶皺：一道暗、一道亮
+  const folds=[[-.95,.1],[-.7,-.55],[-.35,-.95],[.4,-.95],[.75,-.5],[.98,.15]];
+  folds.forEach(([fx,fy],k)=>{
+    const sx=cx+W*.02+fx*rx*.42,sy=cy-ry*.5+fy*ry*.42,ex=cx+fx*rx*.92,ey=cy-ry*.35+fy*ry*.75;
+    const mx=(sx+ex)/2+(k%2?6:-6),my=(sy+ey)/2;
+    c.lineCap='round';
+    c.filter='blur(2.5px)';c.strokeStyle='rgba(140,85,105,.28)';c.lineWidth=4;
+    c.beginPath();c.moveTo(sx,sy);c.quadraticCurveTo(mx,my,ex,ey);c.stroke();
+    c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=2.5;
+    c.beginPath();c.moveTo(sx+2,sy-2);c.quadraticCurveTo(mx+2,my-2,ex+2,ey-2);c.stroke();
+  });
+  c.filter='none';
+  // 頂部的布料反光
+  const sheen=c.createLinearGradient(cx-rx,0,cx+rx,0);
+  sheen.addColorStop(0,'rgba(255,255,255,0)');sheen.addColorStop(.3,'rgba(255,255,255,.45)');sheen.addColorStop(.55,'rgba(255,255,255,0)');
+  c.fillStyle=sheen;c.fillRect(cx-rx,cy-ry*1.2,rx*2,ry*.35);
+  c.restore();
+  // 縫線
+  c.setLineDash([3,4]);c.strokeStyle='rgba(180,130,150,.45)';c.lineWidth=1;
+  c.beginPath();c.ellipse(cx,cy+ry*.02,rx*.97,ry*1.04,0,Math.PI*1.08,Math.PI*1.92);c.stroke();c.setLineDash([]);
+  c.restore();
+}
 function drawHand(){
   const c=hx;wipe(c);base(c);
+  drawPillow(c);
   c.save();c.shadowColor='rgba(80,40,60,.2)';c.shadowBlur=22;c.shadowOffsetY=10;c.drawImage(HAND,0,OY,W,HH);c.restore();
   if(C.tint!=='#FFFFFF'){wipe(fx);raw(fx);fx.drawImage(HAND,0,OY*D,PW,HH*D);fx.globalCompositeOperation='source-in';fx.fillStyle=C.tint;fx.fillRect(0,0,PW,PH);
     raw(c);c.globalCompositeOperation='multiply';c.drawImage(fxCv,0,0);c.globalCompositeOperation='source-over'}
@@ -807,6 +868,17 @@ function rebuild(){
 }
 function cureInfo(){let any=false,pending=false;active().forEach(a=>{if(a.t==='cure'){any=true;pending=false}else pending=true});return{any,pending}}
 function cured(){const c=cureInfo();return c.any&&!c.pending}
+// 筆刷範圍預覽：落色點畫一個圈，大小就是這一筆會塗到的寬度
+function drawRange(c,p){
+  if(!nails.length)return;
+  const r=tab==='detail'?2.4:nails[1].nw*.52*(has('t_brush')?1.25:1)/2;
+  base(c);c.save();
+  c.beginPath();c.arc(p[0],p[1],r,0,Math.PI*2);
+  c.fillStyle=tab==='detail'?color:rgba(color,.18);c.fill();
+  c.lineWidth=1.6/view.z;c.strokeStyle='rgba(255,255,255,.95)';c.stroke();
+  c.setLineDash([3/view.z,2.5/view.z]);c.lineWidth=1/view.z;c.strokeStyle='rgba(46,31,42,.75)';c.stroke();
+  c.restore();
+}
 function frame(){
   wipe(ctx);ctx.drawImage(handCv,0,0);ctx.drawImage(layCv,0,0);
   wipe(tx);base(tx);
@@ -815,7 +887,7 @@ function frame(){
   raw(ctx);ctx.drawImage(tmpCv,0,0);if(cur&&cur.t==='polish')ctx.drawImage(lineCv,0,0);
   const ci=cureInfo();if(ci.any)ctx.drawImage(glCv,0,0);
   $('#btnCure').classList.toggle('need',ci.pending);
-  if(holding()&&brushAt)drawBrush(ctx,brushAt);
+  if(holding()&&brushAt){drawRange(ctx,brushAt);drawBrush(ctx,brushAt)}
 }
 
 let brushAt=null;
@@ -1203,28 +1275,54 @@ $('#btnSaveOk').onclick=async()=>{
 
 /* ---------- 分享小卡、存成作品、回主頁 ---------- */
 let lastRes=null;
+// 這一位客人用到的膠色名稱
+function usedColors(){
+  const seen=[];active().forEach(a=>[a.c,a.c2].forEach(h=>{if(!h)return;const p=POLISH.find(q=>q[0].toLowerCase()===String(h).toLowerCase());if(p&&!seen.includes(p[1]))seen.push(p[1])}));
+  return seen.slice(0,4);
+}
+// 款式卡：IG 限動尺寸，粉色緞面底，中間一張微微歪斜的拍立得
 function makeCard(res){
-  const c=document.createElement('canvas');c.width=800;c.height=1100;const x=c.getContext('2d');
-  const g=x.createLinearGradient(0,0,800,1100);g.addColorStop(0,'#FCE8EF');g.addColorStop(1,'#F1CFDB');x.fillStyle=g;x.fillRect(0,0,800,1100);
-  x.fillStyle='#FFFFFF';x.beginPath();x.roundRect(60,60,680,980,36);x.fill();
-  const bh=740,bw2=Math.round(bh*W/H);
-  x.save();x.beginPath();x.roundRect(100,110,600,bh,24);x.clip();x.fillStyle='#F9EEF2';x.fillRect(100,110,600,bh);
-  x.drawImage(cv,100+(600-bw2)/2,110,bw2,bh);x.restore();
-  x.textAlign='left';
-  x.font='500 40px system-ui,sans-serif';x.fillStyle='#2E1F2A';x.fillText(STY[res.style]||'指尖作品',100,922);
-  x.font='400 28px system-ui,sans-serif';x.fillStyle='#857480';x.fillText(`${'★'.repeat(res.stars)}${'☆'.repeat(3-res.stars)}　小費 +${res.tip}`,100,970);
-  x.font='400 24px system-ui,sans-serif';x.fillStyle='#C2607A';x.fillText('Slaycure・指尖的美甲小店',100,1012);
+  const CW=1080,CH=1920,c=document.createElement('canvas');c.width=CW;c.height=CH;const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,CW,CH);g.addColorStop(0,'#FBE9EF');g.addColorStop(.5,'#F3D6DF');g.addColorStop(1,'#EBC7D3');x.fillStyle=g;x.fillRect(0,0,CW,CH);
+  [[.25,.6],[.7,.35]].forEach(([p,a])=>{const s=x.createLinearGradient(0,CH*p-300,CW,CH*p+300);s.addColorStop(0,'rgba(255,255,255,0)');s.addColorStop(.5,`rgba(255,255,255,${a})`);s.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=s;x.fillRect(0,0,CW,CH)});
+  const disp='"Bodoni Moda","Noto Serif TC",Georgia,serif',sans='"Noto Sans TC","PingFang TC",system-ui,sans-serif';
+  x.textAlign='center';x.fillStyle='#2E1F2A';x.font=`italic 500 96px ${disp}`;x.fillText('Slaycure',CW/2,190);
+  x.font=`400 30px ${sans}`;x.fillStyle='#8A6C79';x.fillText('今 日 作 品',CW/2,245);
+  // 拍立得
+  const PX=150,PY=300,PWd=780,photoW=700,photoH=Math.round(photoW*H/W),PHt=photoH+40+250;
+  x.save();x.translate(CW/2,PY+PHt/2);x.rotate(-.025);x.translate(-CW/2,-(PY+PHt/2));
+  x.shadowColor='rgba(110,60,80,.28)';x.shadowBlur=40;x.shadowOffsetY=18;x.fillStyle='#FFFFFF';x.fillRect(PX,PY,PWd,PHt);x.shadowColor='transparent';
+  x.fillStyle='#F7EDF1';x.fillRect(PX+40,PY+40,photoW,photoH);x.drawImage(cv,PX+40,PY+40,photoW,photoH);
+  const ty=PY+40+photoH;x.textAlign='left';
+  x.fillStyle='#2E1F2A';x.font=`700 54px ${sans}`;x.fillText(res.title,PX+48,ty+92);
+  x.font=`400 46px ${sans}`;x.fillStyle='#D4537E';x.fillText('★'.repeat(res.stars)+'☆'.repeat(3-res.stars),PX+48,ty+160);
+  let cx0=PX+48;x.font=`500 28px ${sans}`;
+  res.colors.forEach(n=>{const w=x.measureText(n).width+36;x.fillStyle='#FBEAF0';x.beginPath();x.roundRect(cx0,ty+190,w,46,23);x.fill();x.fillStyle='#993556';x.fillText(n,cx0+18,ty+223);cx0+=w+12});
+  x.textAlign='right';x.fillStyle='#B48A9B';x.font=`italic 400 40px ${disp}`;x.fillText('by may22',PX+PWd-44,ty+160);
+  x.restore();
+  x.textAlign='center';x.font=`400 30px ${sans}`;x.fillStyle='#8A6C79';x.fillText('iammay22.github.io/slaycure',CW/2,CH-110);
   return c;
 }
-async function shareCard(){
+let cardBlob=null;
+async function openCard(){
   if(!lastRes)return;
-  makeCard(lastRes).toBlob(async b=>{
-    const f=new File([b],'slaycure-card.png',{type:'image/png'});
-    if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Slaycure 小卡'});return}catch(e){if(e&&e.name==='AbortError')return}}
-    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='slaycure-card.png';document.body.appendChild(a);a.click();a.remove();gtoast('小卡已下載');
-  },'image/png');
+  try{await document.fonts.ready}catch(e){}
+  const c=makeCard({...lastRes,colors:usedColors(),title:STY[lastRes.style]||'指尖作品'});
+  $('#cardImg').src=c.toDataURL('image/png');
+  cardBlob=await new Promise(r=>c.toBlob(r,'image/png'));
+  $('#btnCardKeep').hidden=lastRes.stars!==3;
+  $('#cardModal').hidden=false;
 }
-$('#btnShare').onclick=shareCard;
+$('#btnShare').onclick=openCard;
+$('#btnCardDl').onclick=()=>{if(!cardBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(cardBlob);a.download='slaycure-card.png';document.body.appendChild(a);a.click();a.remove();gtoast('款式卡已下載')};
+$('#btnCardShare').onclick=async()=>{
+  if(!cardBlob)return;const f=new File([cardBlob],'slaycure-card.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Slaycure 款式卡',text:'來 Slaycure 做指甲 → https://iammay22.github.io/slaycure/'});return}catch(e){if(e&&e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText('https://iammay22.github.io/slaycure/');gtoast('已複製遊戲連結，卡片可以先下載再上傳')}catch(e){gtoast('這個瀏覽器不能分享，先按下載卡片')}
+};
+$('#btnCardKeep').onclick=()=>{$('#cardModal').hidden=true;if(lastRes&&lastRes.stars===3)openSave()};
+$('#btnCardClose').onclick=()=>{$('#cardModal').hidden=true};
+$('#cardModal').addEventListener('click',e=>{if(e.target.id==='cardModal')$('#cardModal').hidden=true});
 $('#btnKeep').onclick=()=>{if(lastRes&&lastRes.stars===3)openSave()};
 // 點左上角的 Slaycure 回主頁；做到一半離開會先問一次
 const logoEl=document.querySelector('.logo');logoEl.style.cursor='pointer';
