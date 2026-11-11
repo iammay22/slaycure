@@ -23,6 +23,8 @@ const HEAD = SHOWN.concat(HIDDEN);
 function doGet(e) {
   e = e || { parameter: {} };   // 在編輯器直接按「執行」時沒有網址參數
   const a = e.parameter.action || 'top';
+  if (a === 'visit') return out_(visit_(String(e.parameter.id || '').slice(0, 40)));
+  if (a === 'stats') return out_(stats_());
   const t = table_();
   const rows = t.rows.map(t.obj);
   const open = rows.filter(p => !p['不公開']);
@@ -174,6 +176,68 @@ function works_(p) {
     list.push({ id: String(c.id || 'w' + i), at: Number(c.at) || 0, name: String(p[N(i) + '名稱'] || ''), tags: String(p[N(i) + '標籤'] || ''), img });
   }
   return list;
+}
+
+/* ---------- 瀏覽統計：「瀏覽統計」工作表，一天一列 ---------- */
+// 欄位：日期 ｜ 今日人次（不重複玩家） ｜ 瀏覽次數 ｜ 今日玩家代號（程式用，隱藏）
+const STAT_SHEET = '瀏覽統計';
+function statSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let s = ss.getSheetByName(STAT_SHEET);
+  if (!s) {
+    s = ss.insertSheet(STAT_SHEET);
+    s.getRange(1, 1, 1, 4).setValues([['日期', '今日人次', '瀏覽次數', '今日玩家代號']]).setFontWeight('bold').setBackground('#f6e3ea');
+    s.setFrozenRows(1);
+    s.getRange(2, 1, 999, 1).setNumberFormat('yyyy/mm/dd');
+    s.hideColumns(4);
+  }
+  return s;
+}
+function today_() { return Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd'); }
+function dayOf_(v) { return v instanceof Date ? Utilities.formatDate(v, 'Asia/Taipei', 'yyyy-MM-dd') : String(v); }
+
+// 每次開啟網頁呼叫一次：瀏覽次數 +1；同一位玩家當天第一次來才算一人
+function visit_(id) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const s = statSheet_(), today = today_();
+    let row = -1;
+    const last = s.getLastRow();
+    if (last > 1) {
+      const dates = s.getRange(2, 1, last - 1, 1).getValues();
+      for (let i = 0; i < dates.length; i++) if (dayOf_(dates[i][0]) === today) { row = i + 2; break; }
+    }
+    if (row === -1) { s.appendRow([today, 0, 0, '[]']); row = s.getLastRow(); }
+    s.getRange(row, 3).setValue((Number(s.getRange(row, 3).getValue()) || 0) + 1);
+    if (id) {
+      const seen = parseArr_(s.getRange(row, 4).getValue());
+      if (seen.indexOf(id) === -1) {
+        seen.push(id);
+        s.getRange(row, 4).setValue(JSON.stringify(seen));
+        s.getRange(row, 2).setValue(seen.length);
+      }
+    }
+    return { ok: true };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 回傳今天人次、累計人次（每天不重複人次加總）、累計瀏覽次數
+function stats_() {
+  const s = statSheet_(), today = today_();
+  let todayUnique = 0, total = 0, views = 0;
+  const last = s.getLastRow();
+  if (last > 1) {
+    s.getRange(2, 1, last - 1, 3).getValues().forEach(r => {
+      const u = Number(r[1]) || 0;
+      total += u;
+      views += Number(r[2]) || 0;
+      if (dayOf_(r[0]) === today) todayUnique = u;
+    });
+  }
+  return { today: todayUnique, total: total, views: views };
 }
 
 /* ---------- 小工具 ---------- */

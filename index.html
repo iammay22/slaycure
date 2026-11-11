@@ -46,6 +46,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hero .big b{font-weight:400;color:var(--accent)}
 .hero p{margin:0;max-width:28ch;color:var(--muted)}
 .hero .tipnote{font-size:12px;max-width:32ch;background:#FBEFF3;border-radius:10px;padding:6px 10px;color:var(--accent)}
+.hero .visits{font-size:12px;color:var(--muted);margin-top:-6px}
+.hero .visits:empty{display:none}
 .hero .byline{font-family:var(--f-display);font-style:italic;font-size:13px;color:var(--muted);opacity:.8;margin-top:-4px}
 .rule{width:56px;height:1px;background:var(--gold)}
 .trio{display:flex;gap:10px;justify-content:center}
@@ -277,6 +279,7 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
     <div class="trio" id="trio"></div>
     <p>幫客人做一雙漂亮的指甲。一位客人大約兩分鐘。</p>
     <p class="tipnote">建議用 Safari 或 Chrome 開啟，LINE、IG 內建瀏覽器的存檔可能會消失。</p>
+    <p class="visits" id="visits"></p>
     <button class="btn wide" id="btnStart">開門營業</button>
     <div class="lobby">
       <button data-go="free"><b>自由創作</b><span>設計自己的款式</span></button>
@@ -1166,7 +1169,17 @@ $('#btnSaveOk').onclick=async()=>{
 $('#btnStart').onclick=showCustomer;$('#btnWork').onclick=startWork;
 $('#btnDone').onclick=()=>{if(curing)return;if(!active().length){toast('還沒開始做喔');return}if(freeMode)openSave();else finish()};
 $('#btnNext').onclick=showCustomer;
-initBackend();
+initBackend().then(showVisits);
+// 首頁的瀏覽人次：每次開啟呼叫一次，同一人每天只算一次由試算表那邊判斷
+async function showVisits(){
+  const el=document.getElementById('visits');
+  if(!el||BE.kind!=='sheets')return;
+  try{
+    await sGet({action:'visit',id:BE.uid});
+    const s=await sGet({action:'stats'});
+    el.textContent=`今天 ${s.today} 人來過・累計 ${s.total} 人次`;
+  }catch(e){console.warn(e)}
+}
 })();
 </script>
 </body>
