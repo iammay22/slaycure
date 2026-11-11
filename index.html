@@ -45,6 +45,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hero .big{font-family:var(--f-display);font-style:italic;font-weight:400;font-size:clamp(58px,17vw,82px);line-height:.9}
 .hero .big b{font-weight:400;color:var(--accent)}
 .hero p{margin:0;max-width:28ch;color:var(--muted)}
+.hero .tipnote{font-size:12px;max-width:32ch;background:#FBEFF3;border-radius:10px;padding:6px 10px;color:var(--accent)}
 .hero .byline{font-family:var(--f-display);font-style:italic;font-size:13px;color:var(--muted);opacity:.8;margin-top:-4px}
 .rule{width:56px;height:1px;background:var(--gold)}
 .trio{display:flex;gap:10px;justify-content:center}
@@ -243,7 +244,6 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .chips button.locked{opacity:.45}
 .chips button.locked::after{content:" 🔒";font-size:10px}
 .allbtn{border:1px dashed var(--accent);background:#FBEFF3;color:var(--accent);border-radius:12px;padding:8px;font-size:13.5px}
-.stage.velvet{background:radial-gradient(70% 50% at 50% 30%,#B9798F,#7E3F56)}
 .mastery{margin:0;text-align:center;font-size:13.5px;color:var(--accent)}
 .mastery:empty{display:none}
 .resbtns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
@@ -275,6 +275,7 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
     <div class="big">Slay<b>cure</b></div>
     <div class="trio" id="trio"></div>
     <p>幫客人做一雙漂亮的指甲。一位客人大約兩分鐘。</p>
+    <p class="tipnote">建議用 Safari 或 Chrome 開啟，LINE、IG 內建瀏覽器的存檔可能會消失。</p>
     <button class="btn wide" id="btnStart">開門營業</button>
     <div class="lobby">
       <button data-go="free"><b>自由創作</b><span>設計自己的款式</span></button>
@@ -459,7 +460,6 @@ const SHOP=[
  {id:'d_bow',cat:'飾品',name:'蝴蝶結',desc:'用目前的顏色畫小蝴蝶結',price:150},
  {id:'t_brush',cat:'工具',name:'寬版刷子',desc:'刷頭寬 25%，刷得更快',price:300},
  {id:'t_lamp',cat:'工具',name:'速乾燈',desc:'照燈更快，每位客人多 10 秒',price:350},
- {id:'t_velvet',cat:'店面',name:'絲絨工作台',desc:'工作台換成玫瑰色絲絨',price:200},
  {id:'t_vip',cat:'店面',name:'VIP 招牌',desc:'偶爾來小費 1.5 倍的 VIP 客人',price:800},
 ];
 const LV=[0,3,8,15];
@@ -1001,7 +1001,7 @@ function score(){
 }
 function finish(){
   clearInterval(tick);cur=null;zoomTo(-1);frame();const r=score();
-  const lines={3:['也太 slay 了吧，我要拍照發限動！','這就是我想要的，下次還找你。','手好美，捨不得洗手了。'],2:['還不錯，謝謝你。','嗯，蠻可愛的。','跟我想的有點不一樣，但可以。'],1:['呃…跟我說的不太一樣。','好吧，我回家再看看。','下次再加油喔。']};
+  const lines={3:['也太 slay 了吧，我要拍照發限動！','絕絕子！下次直接預約你，先幫我留位','這個色我愛了愛了，手好美捨不得洗手','我直接截圖傳給閨蜜，她一定要你的聯絡方式','這款真的會謝，今天的 OOTD 就靠它了','蚌埠住了，這也太好看，我要哭了'],2:['還不錯啦，謝謝你～','嗯，蠻可愛的，有種清爽感','跟我想的有點不一樣，但也 ok 啦','可以可以，就是差那麼一點點氣質','還行，拍起來應該還好看','普通好看，但不會讓我尖叫'],1:['呃…跟我說的完全不一樣欸','我真的無語，回家自己修好了','這樣子出門我會有點社死','下次不敢再找你了QAQ','emmm 我再想想…','這是什麼我不太懂，有點崩潰']};
   $('#avatar2').innerHTML=avatar(C,r.stars===3?'happy':r.stars===2?'ok':'sad');
   $('#resName').textContent=C.name;$('#reaction').textContent=pick(lines[r.stars]);
   $('#stars').innerHTML=[1,2,3].map(i=>`<span class="${i<=r.stars?'':'off'}">✦</span>`).join('');
@@ -1038,7 +1038,6 @@ function refreshLocks(){
   $$('#styleChips button').forEach(b=>b.classList.toggle('locked',!hasStyle(b.dataset.s)));
   $$('#decoChips button').forEach(b=>b.classList.toggle('locked',!hasDeco(b.dataset.d)));
   if(!hasColor(POLISH.findIndex(p=>p[0]===color)))setColor(0);
-  $('#stage').classList.toggle('velvet',has('t_velvet'));
 }
 const lockedMsg=n=>toast(`在商店的「${n}」解鎖`);
 
