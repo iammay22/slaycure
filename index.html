@@ -107,8 +107,14 @@ canvas{display:block;width:100%;height:auto;touch-action:none;transform-origin:0
 .bottle.on .glass{outline:1.5px solid var(--ink);outline-offset:2px}
 .colorname{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);letter-spacing:.06em}
 .colorname b{color:var(--ink);font-weight:500;font-family:var(--f-head)}
-.actions{display:grid;grid-template-columns:1fr 1fr 1.2fr 1.2fr;gap:8px}
-.actions .btn{padding:10px 4px;font-size:14px;letter-spacing:.02em}
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr 1.3fr;gap:6px}
+.actions .btn{padding:10px 2px;font-size:13px;letter-spacing:.02em}
+.actions .btn:disabled{opacity:.4}
+.zoomctl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.zoomctl button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(46,31,42,.15);background:rgba(253,250,251,.92);font-size:18px;line-height:1;color:var(--ink)}
+.tabs button.on{color:#B0455F;border-bottom-color:#C2607A;background:linear-gradient(180deg,transparent,rgba(194,96,122,.1))}
+.chips button.on{box-shadow:0 0 0 3px rgba(194,96,122,.25)}
+.bottle.on .glass{box-shadow:0 0 0 3px rgba(194,96,122,.35),0 0 12px rgba(194,96,122,.5)}
 .btn.lampbtn{background:#EEE8FA;border-color:#CFC2EE;color:var(--ink)}
 .btn.lampbtn.need::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:2px}
 .res{display:flex;flex-direction:column;gap:16px}
@@ -142,7 +148,7 @@ body.working header{display:none}
 .scrollrow>*{flex:0 0 auto}
 .scrollrow .chips{flex-wrap:nowrap}
 .lab{font-size:12px;color:var(--muted);margin-left:4px}
-.tabs{grid-template-columns:repeat(5,1fr)}
+.tabs{grid-template-columns:repeat(4,1fr)}
 .tabs button{padding:6px 2px 8px}
 #shelf{gap:5px;border-bottom:0;padding-bottom:2px}
 #shelf .bottle{width:30px;height:46px}
@@ -346,15 +352,16 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
     <div class="stage" id="stage">
       <canvas id="cv" aria-label="客人的手。用刷子在指甲上刷色。兩指捏合可以放大縮小、移動"></canvas>
       <div class="zoom" id="zoom"><button data-z="-1" class="on">全手</button><button data-z="0">拇</button><button data-z="1">食</button><button data-z="2">中</button><button data-z="3">無</button><button data-z="4">小</button></div>
+      <div class="zoomctl"><button id="zIn" aria-label="放大">+</button><button id="zOut" aria-label="縮小">−</button><button id="zReset" aria-label="重置視角">⟲</button></div>
       <div class="lamp" id="lamp"></div>
       <div class="toast" id="toast"></div>
     </div>
     <div class="card tray">
-      <div class="tabs" id="tabs"><button data-t="shape" class="on"><i>1</i>甲型</button><button data-t="polish"><i>2</i>刷色</button><button data-t="style"><i>3</i>款式</button><button data-t="detail"><i>4</i>細節</button><button data-t="deco"><i>5</i>飾品</button></div>
+      <div class="tabs" id="tabs"><button data-t="shape" class="on"><i>1</i>修型</button><button data-t="polish"><i>2</i>底色</button><button data-t="style"><i>3</i>膠彩</button><button data-t="deco"><i>4</i>飾品</button></div>
       <p class="hint" id="hint"></p>
       <div class="scrollrow" id="shapeRow" hidden><span class="lab">甲型</span><div class="chips" id="shapeChips"><button data-sh="round" class="on">圓形</button><button data-sh="oval">橢圓</button><button data-sh="almond">杏仁</button><button data-sh="square">方圓</button></div><span class="lab" id="lenLab">延甲</span><div class="chips" id="lenChips"><button data-l="1" class="on">原長</button><button data-l="1.35">短延</button><button data-l="1.7">中延</button><button data-l="2.15">超長</button></div></div>
       <div class="chips scrollrow" id="styleChips" hidden>
-        <button data-s="french" class="on">法式</button><button data-s="pearledge">珍珠邊</button><button data-s="cat">貓眼</button><button data-s="ombre">漸層</button><button data-s="aurora">極光</button><button data-s="dots">波點</button><button data-s="glitter">細閃</button>
+        <button data-s="french" class="on">法式</button><button data-s="pearledge">珍珠邊</button><button data-s="cat">貓眼</button><button data-s="ombre">漸層</button><button data-s="aurora">極光</button><button data-s="dots">波點</button><button data-s="glitter">細閃</button><button data-s="detail">細節筆</button>
       </div>
       <div class="chips scrollrow" id="decoChips" hidden>
         <button data-d="pearl" class="on">珍珠</button><button data-d="gem">水鑽</button><button data-d="beads">鋼珠鏈</button><button data-d="bow">蝴蝶結</button><button data-d="star">星星</button>
@@ -363,6 +370,7 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
       <div id="shelfWrap"><div class="shelf scrollrow" id="shelf"></div></div>
       <div class="actions">
         <button class="btn ghost" id="btnUndo">復原</button>
+        <button class="btn ghost" id="btnRedo" disabled>重做</button>
         <button class="btn ghost" id="btnClear">清除</button>
         <button class="btn lampbtn" id="btnCure">照燈固化</button>
         <button class="btn" id="btnDone">交件</button>
@@ -408,6 +416,13 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
       <button class="btn ghost" id="btnPhotoClose">關閉</button>
     </div>
   </div>
+  <div class="modal" id="browserModal" hidden>
+    <div class="card">
+      <h2>建議用外部瀏覽器開啟</h2>
+      <p class="muted" style="margin:0">你現在是用 LINE、IG、FB 或 Threads 的內建瀏覽器，存檔可能會消失。點右上角的選單，選「在 Safari 開啟」或「在瀏覽器開啟」就好。</p>
+      <button class="btn" id="btnBrowserOk">知道了</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -445,7 +460,7 @@ const FN=['小美','婷婷','Mia','雅琪','Chloe','欣怡','Yuna','佩佩','Ivy
 const MN=['阿凱','志明','Leo','宇翔','Ken','俊傑'];
 const PERS=[['隨和',0],['挑剔',1],['趕時間',2]];
 const HINTS={shape:'先修成客人要的甲型，延甲客人再選延長的長度。',polish:'拿著刷子從指甲根部往指尖刷，中間一刷、左右各一刷。刷到皮膚上會扣精細度。清透色刷兩層更有光澤。',
- detail:'握著細節筆畫線條、點點或小圖案，筆尖在握柄左下方。小心別畫到皮膚上。',
+ detail:'用細節筆畫線條、點點或小圖案，筆尖在手指上方一點，對準要畫的位置就好。小心別畫到皮膚上。',
  french:'點指甲，用目前的顏色做法式微笑線。',pearledge:'在做好法式的指甲上點一下，沿著微笑線鑲一排小珍珠。',
  cat:'點指甲上貓眼膠，按住上下拖曳移動光帶。選香檳金就是奶茶貓眼的金光。',ombre:'點一下指甲，顏色從指尖往根部暈開。',
  aurora:'先刷底色再上極光粉，會出現粉藍色的珠光。',dots:'點一下指甲，用目前的顏色點出均勻波點。',glitter:'點一下指甲撒上細閃。',
@@ -778,7 +793,11 @@ function decoDraw(c,a){
 }
 const FX=['french','cat','ombre','aurora','dots','glitter','pearledge'];
 function active(){let s=0;actions.forEach((a,i)=>{if(a.t==='clear')s=i+1});return actions.slice(s)}
+// 復原／重做：一有新的筆畫就清掉可以重做的紀錄
+let redoStack=[],lastLen=0;
 function rebuild(){
+  if(actions.length!==lastLen){redoStack=[];lastLen=actions.length}
+  $('#btnRedo').disabled=!redoStack.length;
   wipe(lx);const acts=active();
   nails.forEach(n=>{const mine=acts.filter(a=>a.t==='polish'||a.t==='fill'||(a.n===n.i&&FX.includes(a.t)&&a.t!=='pearledge'));if(!mine.length)return;
     wipe(nx);base(nx);mine.forEach(a=>a.t==='polish'?polishStroke(nx,a):a.t==='fill'?(nx.globalAlpha=opOf(a.c),nx.fillStyle=a.c,nx.fillRect(0,0,W,H),nx.globalAlpha=1):effect(nx,a));masked(nx,n);raw(lx);lx.drawImage(nailCv,0,0)});
@@ -912,8 +931,10 @@ $('#shelf').innerHTML=POLISH.map((p,i)=>`<button class="bottle${p[3]<.7?' sheer'
 const setColor=(i,say)=>{color=POLISH[i][0];if(say)toast(POLISH[i][1]+(POLISH[i][3]<.7?'・清透':''));$$('.bottle').forEach(b=>b.classList.toggle('on',+b.dataset.i===i))};setColor(0);
 $('#shelf').addEventListener('click',e=>{const b=e.target.closest('.bottle');if(!b)return;const i=+b.dataset.i;if(!hasColor(i)){lockedMsg(packOf(i).name);return}setColor(i,true)});
 function syncTray(){
-  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
-  $('#styleChips').hidden=tab!=='style';$('#decoChips').hidden=tab!=='deco';$('#shapeRow').hidden=tab!=='shape';
+  const grp=tab==='detail'?'style':tab;
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===grp));
+  $('#styleChips').hidden=grp!=='style';$('#decoChips').hidden=tab!=='deco';$('#shapeRow').hidden=tab!=='shape';
+  $$('#styleChips button').forEach(b=>b.classList.toggle('on',tab==='detail'?b.dataset.s==='detail':b.dataset.s===styleSel));
   $('#shelfWrap').hidden=tab==='shape'||(tab==='deco'&&!['bow','star'].includes(decoSel))||(tab==='style'&&['glitter','pearledge','aurora'].includes(styleSel));
   $('#hint').textContent=tab==='style'?HINTS[styleSel]:HINTS[tab];
   brushAt=null;if(nails.length)frame();syncAll();
@@ -922,7 +943,7 @@ const chipSet=(sel,b)=>$$(sel+' button').forEach(x=>x.classList.toggle('on',x===
 let seenTips={};try{seenTips=JSON.parse(localStorage.getItem('slaycure-tips')||'{}')}catch(e){}
 const tipToast=()=>{if(innerWidth>=820)return;const k=tab==='style'?styleSel:tab;if(seenTips[k])return;seenTips[k]=1;try{localStorage.setItem('slaycure-tips',JSON.stringify(seenTips))}catch(e){}toast($('#hint').textContent)};
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;syncTray();tipToast()});
-$('#styleChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(!hasStyle(b.dataset.s)){lockedMsg(SHOP.find(s=>s.id===STYLE_ITEM[b.dataset.s]).name);return}styleSel=b.dataset.s;chipSet('#styleChips',b);syncTray();tipToast()});
+$('#styleChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.s==='detail'){tab='detail';syncTray();tipToast();return}if(!hasStyle(b.dataset.s)){lockedMsg(SHOP.find(s=>s.id===STYLE_ITEM[b.dataset.s]).name);return}styleSel=b.dataset.s;chipSet('#styleChips',b);syncTray();tipToast()});
 $('#decoChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(!hasDeco(b.dataset.d)){lockedMsg(SHOP.find(s=>s.id===DECO_ITEM[b.dataset.d]).name);return}decoSel=b.dataset.d;chipSet('#decoChips',b);syncTray()});
 $('#shapeChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!natMasks||curing)return;shape=b.dataset.sh;chipSet('#shapeChips',b);buildHand()});
 $('#lenChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!natMasks||curing)return;len=+b.dataset.l;chipSet('#lenChips',b);buildHand();if(len>2)toast('太長容易斷甲，要小心')});
@@ -944,13 +965,18 @@ function zoomTo(i){const r=stage.getBoundingClientRect();
   stage.classList.remove('live');setView(true,i);brushAt=null;if(nails.length)frame()}
 $('#zoom').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;zoomTo(+b.dataset.z)});
 if('ResizeObserver' in window)new ResizeObserver(()=>{if(!$('#sWork').hidden)fitCanvas()}).observe(stage);
-$('#btnUndo').onclick=()=>{if(curing||!nails.length)return;actions.pop();rebuild()};
+$('#btnUndo').onclick=()=>{if(curing||!nails.length||!actions.length)return;redoStack.push(actions.pop());lastLen=actions.length;rebuild()};
+$('#btnRedo').onclick=()=>{if(curing||!nails.length||!redoStack.length)return;actions.push(redoStack.pop());lastLen=actions.length;rebuild()};
+// 放大、縮小、重置視角（以手的中心為準）
+function zoomBy(f){const r=stage.getBoundingClientRect(),sx=r.width/2,sy=r.height/2,cx=(sx-view.x)/view.z,cy=(sy-view.y)/view.z;
+  view.z=clamp(view.z*f,1,4);view.x=sx-cx*view.z;view.y=sy-cy*view.z;stage.classList.remove('live');setView(true);if(nails.length)frame()}
+$('#zIn').onclick=()=>zoomBy(1.3);$('#zOut').onclick=()=>zoomBy(1/1.3);$('#zReset').onclick=()=>zoomTo(-1);
 $('#btnClear').onclick=()=>{if(curing||!nails.length)return;if(active().length){actions.push({t:'clear'});rebuild()}};
 $('#btnCure').onclick=()=>{if(curing||!nails.length)return;if(!cureInfo().pending){toast('目前沒有需要固化的部分');return}curing=true;$('#lamp').classList.add('on');toast('照燈 60 秒…');
   setTimeout(()=>{$('#lamp').classList.remove('on');actions.push({t:'cure'});curing=false;rebuild();toast('固化完成。之後再畫的部分要再照一次燈')},has('t_lamp')?450:1200)};
 
 function startWork(){
-  actions=[];cur=null;len=1;shape='round';tab='shape';syncTray();setTimeout(tipToast,400);
+  actions=[];redoStack=[];lastLen=0;cur=null;len=1;shape='round';tab='shape';syncTray();setTimeout(tipToast,400);
   $('#lenLab').hidden=$('#lenChips').hidden=C.len===1;chipSet('#lenChips',$('#lenChips button[data-l="1"]'));chipSet('#shapeChips',$('#shapeChips button[data-sh="round"]'));
   $('#avatarS').innerHTML=C.free?'<span class="freeic">✎</span>':avatar(C,'ok');$('#workReq').innerHTML=`<b>${C.name}</b>　${C.req}`;
   $('#sWork').classList.toggle('free',!!C.free);$('#btnDone').textContent=C.free?'完成':'交件';refreshLocks();
@@ -1203,6 +1229,11 @@ $('#btnKeep').onclick=()=>{if(lastRes&&lastRes.stars===3)openSave()};
 // 點左上角的 Slaycure 回主頁；做到一半離開會先問一次
 const logoEl=document.querySelector('.logo');logoEl.style.cursor='pointer';
 logoEl.addEventListener('click',()=>{if(!$('#sWork').hidden&&!confirm('離開會放棄這位客人，確定回主頁嗎？'))return;go('lobby')});
+
+// LINE、IG、FB、Threads 內建瀏覽器會弄丟存檔，第一次進來提醒一次
+function inAppBrowser(){return /Line\/|Instagram|FBAN|FBAV|Threads|Barcelona|MicroMessenger/i.test(navigator.userAgent)}
+if(inAppBrowser()){let seen=false;try{seen=!!localStorage.getItem('slaycure-inapp-ok')}catch(e){}
+  if(!seen){$('#browserModal').hidden=false;$('#btnBrowserOk').onclick=()=>{$('#browserModal').hidden=true;try{localStorage.setItem('slaycure-inapp-ok','1')}catch(e){}}}}
 
 $('#btnStart').onclick=showCustomer;$('#btnWork').onclick=startWork;
 $('#btnDone').onclick=()=>{if(curing)return;if(!active().length){toast('還沒開始做喔');return}if(freeMode)openSave();else finish()};
