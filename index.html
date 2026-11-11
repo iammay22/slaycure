@@ -78,7 +78,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .clock.late{color:var(--warn)}
 .timer{height:2px;background:var(--line)}
 .timer i{display:block;height:100%;background:var(--accent);width:100%;transition:width .25s linear}
-.stage{position:relative;background:radial-gradient(55% 12% at 22% 20%,rgba(232,218,225,.7),transparent 70%),radial-gradient(50% 12% at 82% 72%,rgba(232,218,225,.6),transparent 70%),linear-gradient(135deg,#FBF6F6,#EFE5EA);border-radius:18px;overflow:hidden;touch-action:none;border:1px solid var(--line)}
+.stage{position:relative;background:linear-gradient(118deg,transparent 34%,rgba(255,255,255,.6) 44%,transparent 54%),linear-gradient(205deg,transparent 22%,rgba(255,255,255,.45) 36%,transparent 48%),linear-gradient(165deg,#F9E8ED 0%,#F1D6DF 38%,#FAEEF2 66%,#EDCFD9 100%);border-radius:18px;overflow:hidden;touch-action:none;border:1px solid var(--line)}
 canvas{display:block;width:100%;height:auto;touch-action:none;transform-origin:0 0;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
 .zoom{position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:4px;justify-content:center;z-index:2}
 .zoom button{border:1px solid rgba(46,31,42,.15);background:rgba(253,250,251,.88);backdrop-filter:blur(6px);border-radius:999px;padding:4px 10px;font-size:12.5px}
@@ -250,6 +250,8 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .mastery{margin:0;text-align:center;font-size:13.5px;color:var(--accent)}
 .mastery:empty{display:none}
 .resbtns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.resextra{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.resextra .btn[hidden]{display:none}
 .res .resbtns{position:sticky;bottom:12px;z-index:3}
 .res .resbtns .btn{box-shadow:0 6px 18px rgba(46,31,42,.2)}
 .res .resbtns .btn.ghost{background:var(--surface)}
@@ -375,6 +377,7 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
     <div class="scores" id="bars"></div>
     <p class="mastery" id="mastery"></p>
     <ul class="notes" id="notes"></ul>
+    <div class="resextra"><button class="btn ghost" id="btnShare">分享小卡</button><button class="btn ghost" id="btnKeep" hidden>存成作品</button></div>
     <div class="resbtns"><button class="btn ghost" id="btnLobby">回大廳</button><button class="btn" id="btnNext">下一位客人</button></div>
   </section>
   <div class="modal" id="acctModal" hidden>
@@ -821,6 +824,9 @@ function drawBrush(c,p){
     c.fillStyle=color;c.beginPath();c.moveTo(-bw*.5,-2);c.quadraticCurveTo(-bw*.55,-16,-bw*.42,-22);c.lineTo(bw*.42,-22);c.quadraticCurveTo(bw*.55,-16,bw*.5,-2);c.quadraticCurveTo(0,2,-bw*.5,-2);c.fill();
     c.shadowColor='transparent';c.fillStyle='rgba(255,255,255,.35)';c.fillRect(-bw*.25,-20,bw*.12,15);
     c.strokeStyle=rgba(shade(color,.35),.6);c.lineWidth=.6;for(let q=-2;q<=2;q++){c.beginPath();c.moveTo(q*bw*.16,-21);c.lineTo(q*bw*.18,-3);c.stroke()}
+    // 寬版刷頭：刷毛紋路更細密，每一撇都帶一點光
+    if(has('t_brush')){c.lineWidth=.45;c.strokeStyle=rgba(shade(color,.2),.5);for(let q=-4;q<=4;q++){if(q%2===0)continue;c.beginPath();c.moveTo(q*bw*.1,-20);c.quadraticCurveTo(q*bw*.12,-12,q*bw*.11,-4);c.stroke()}
+      c.fillStyle='rgba(255,255,255,.22)';c.fillRect(-bw*.4,-19,bw*.06,13);c.fillRect(bw*.22,-19,bw*.05,13)}
     c.shadowColor='rgba(40,20,30,.28)';
     c.fillStyle='#2A2228';c.fillRect(-2.2*Math.max(k,.6),-stem,4.4*Math.max(k,.6),stem-21);
     const w=12*Math.max(k,.55),capLen=74*k;let g=c.createLinearGradient(-w,0,w,0);g.addColorStop(0,'#141014');g.addColorStop(.45,'#4E434C');g.addColorStop(1,'#141014');
@@ -1018,13 +1024,16 @@ function finish(){
   const k=C.style,before=lvOf(P.mastery[k]);if(r.stars>=2)P.mastery[k]=(P.mastery[k]||0)+1;const n=P.mastery[k]||0,lv=lvOf(n);
   const perk={2:'預約時間多 15 秒',3:'可以一鍵套用到全部指甲',4:'小費多 20%'};
   $('#mastery').textContent=`${STY[k]}熟練度 Lv${lv}`+(lv>before?`・升級了！${perk[lv]}`:lv<4?`・再做好 ${LV[lv]-n} 位升到 Lv${lv+1}`:'・已滿級')+(r.stars<2?'（2 星以上才算數）':'');
+  lastRes={stars:r.stars,tip:r.tip,style:C.style,name:C.name};
+  $('#btnKeep').hidden=r.stars!==3;$('#btnShare').hidden=false;
   commit();show('#sRes');if(P.served===1||!P.nick)setTimeout(maybeAskNick,900);
 }
 function refuse(){
   $('#avatar2').innerHTML=avatar(C,'ok');$('#resName').textContent=C.name;$('#reaction').textContent='原來發炎了，謝謝你提醒，我先去看醫生，好了再來！';
   $('#stars').innerHTML='<span>✦</span><span>✦</span><span class="off">✦</span>';$('#shot').hidden=true;$('#bars').innerHTML='';
   $('#notes').innerHTML='<li>判斷正確：指緣紅腫、變色時不施作，並建議客人就醫。</li><li>客人信任你，之後會回來預約。</li>';
-  $('#tip').innerHTML='<small>信任小費</small>+30';P.wallet+=30;P.earned+=30;P.served++;$('#mastery').textContent='';commit();show('#sRes');
+  $('#tip').innerHTML='<small>信任小費</small>+30';P.wallet+=30;P.earned+=30;P.served++;$('#mastery').textContent='';
+  lastRes=null;$('#btnKeep').hidden=true;$('#btnShare').hidden=true;commit();show('#sRes');
 }
 /* ---------- lobby navigation ---------- */
 function go(where){
@@ -1165,6 +1174,35 @@ $('#btnSaveOk').onclick=async()=>{
   P.designs=[d,...P.designs].slice(0,8);persist();$('#saveModal').hidden=true;pendingDesign=null;freeMode=false;
   if(BE.ok){const row={items:P.designs};if(BE.kind==='firebase')row.name=nick(),row.photo=BE.photo;const ok=await bSet('gallery/'+BE.uid,row);if(!ok)gtoast('作品存在這台裝置了，上傳作品牆沒有成功')}
   openGallery('mine');gtoast('存好了')};
+
+/* ---------- 分享小卡、存成作品、回主頁 ---------- */
+let lastRes=null;
+function makeCard(res){
+  const c=document.createElement('canvas');c.width=800;c.height=1100;const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,800,1100);g.addColorStop(0,'#FCE8EF');g.addColorStop(1,'#F1CFDB');x.fillStyle=g;x.fillRect(0,0,800,1100);
+  x.fillStyle='#FFFFFF';x.beginPath();x.roundRect(60,60,680,980,36);x.fill();
+  const bh=740,bw2=Math.round(bh*W/H);
+  x.save();x.beginPath();x.roundRect(100,110,600,bh,24);x.clip();x.fillStyle='#F9EEF2';x.fillRect(100,110,600,bh);
+  x.drawImage(cv,100+(600-bw2)/2,110,bw2,bh);x.restore();
+  x.textAlign='left';
+  x.font='500 40px system-ui,sans-serif';x.fillStyle='#2E1F2A';x.fillText(STY[res.style]||'指尖作品',100,922);
+  x.font='400 28px system-ui,sans-serif';x.fillStyle='#857480';x.fillText(`${'★'.repeat(res.stars)}${'☆'.repeat(3-res.stars)}　小費 +${res.tip}`,100,970);
+  x.font='400 24px system-ui,sans-serif';x.fillStyle='#C2607A';x.fillText('Slaycure・指尖的美甲小店',100,1012);
+  return c;
+}
+async function shareCard(){
+  if(!lastRes)return;
+  makeCard(lastRes).toBlob(async b=>{
+    const f=new File([b],'slaycure-card.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Slaycure 小卡'});return}catch(e){if(e&&e.name==='AbortError')return}}
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='slaycure-card.png';document.body.appendChild(a);a.click();a.remove();gtoast('小卡已下載');
+  },'image/png');
+}
+$('#btnShare').onclick=shareCard;
+$('#btnKeep').onclick=()=>{if(lastRes&&lastRes.stars===3)openSave()};
+// 點左上角的 Slaycure 回主頁；做到一半離開會先問一次
+const logoEl=document.querySelector('.logo');logoEl.style.cursor='pointer';
+logoEl.addEventListener('click',()=>{if(!$('#sWork').hidden&&!confirm('離開會放棄這位客人，確定回主頁嗎？'))return;go('lobby')});
 
 $('#btnStart').onclick=showCustomer;$('#btnWork').onclick=startWork;
 $('#btnDone').onclick=()=>{if(curing)return;if(!active().length){toast('還沒開始做喔');return}if(freeMode)openSave();else finish()};
