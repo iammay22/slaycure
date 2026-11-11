@@ -2,44 +2,50 @@
 
 日系動漫風的美甲沙龍小遊戲。接客、修甲型、刷指甲油、做款式、照燈，賺小費買新顏色和工具。
 
-整個遊戲就是一個 `index.html`，圖片都包在檔案裡，放上 GitHub Pages 就能玩。
+遊戲本體就是一個 `index.html`，圖片都包在檔案裡，放上 GitHub Pages 就能玩。
 
-## 不設定 Firebase 也能玩
+## 不連資料庫也能玩
 
-直接打開 `index.html`，或照下面的步驟放上 GitHub Pages 都可以玩。這種模式下，錢包、商店、熟練度和自創款式會存在玩家自己的瀏覽器裡，排行榜和作品牆則不會啟用。
+`config.js` 兩個設定都留空時，遊戲照樣能玩。錢包、商店、熟練度和自創款式會存在玩家自己的瀏覽器，只是看不到排行榜和大家的作品。
 
-## 開啟排行榜和作品牆
+## 用 Google 試算表開啟排行榜和作品牆
 
-需要一個免費的 Firebase 專案。玩家不用登入：打開遊戲時會自動匿名登入，第一次上榜時取個暱稱就好。想換裝置繼續玩的人，可以在右上角綁定 Google 帳號。
+玩家不用登入，第一次上榜時取個暱稱就好。大約 5 分鐘可以設定好。
 
-1. 到 [Firebase 主控台](https://console.firebase.google.com/) 建立新專案，Google Analytics 可以不開。
-2. 在專案首頁按「</>」新增網頁應用程式，取個名字。完成後會看到一段 `firebaseConfig`，把裡面的值貼到 `firebase-config.js`，改成 `window.SLAY_FIREBASE = { ... }` 的格式。
-3. 左邊選單點「安全性 → Authentication」，按「開始使用」，在「登入方式」啟用「匿名」。如果想讓玩家綁定 Google，再把「Google」也打開。
-4. 一樣在 Authentication，打開「設定」→「授權網域」，加入你的 GitHub Pages 網域，例如 `你的帳號.github.io`。
-5. 左邊選單點「資料庫和儲存空間 → Firestore Database」，建立資料庫，選「正式版模式」，地區選 `asia-east1`，也就是台灣。注意不要選到「即時資料庫」。
-6. 到 Firestore 的「規則」分頁，把 `firestore.rules` 的內容整個貼上，按「發布」。
+1. 開一個新的 Google 試算表，取名例如「Slaycure 資料」。這份試算表不用分享給任何人。
+2. 在試算表上方選「擴充功能 → Apps Script」，把編輯器裡原本的內容全部刪掉，貼上 `apps-script/Code.gs` 的內容，按儲存。
+3. 右上角按「部署 → 新增部署作業」，齒輪圖示選「網頁應用程式」：
+   - 執行身分：**我**
+   - 誰可以存取：**所有人**
+4. 按「部署」，會要求授權。如果出現「Google 尚未驗證這個應用程式」，點「進階」→「前往（不安全）」→「允許」。這是因為程式是你自己寫的，還沒送 Google 審核。
+5. 部署完成後複製「網頁應用程式網址」，看起來像 `https://script.google.com/macros/s/很長一串/exec`，貼到 `config.js` 的 `SLAY_SHEETS_URL`。
+6. 推上 GitHub。等有人玩過之後，試算表會自動多出 `players`、`gallery`、`likes`、`tokens` 四個工作表。
 
-`firebase-config.js` 裡的 apiKey 本來就是公開的，放上 GitHub 沒問題，真正保護資料的是第 6 步的規則。
+之後如果修改了 `Code.gs`，要到「部署 → 管理部署作業」→ 鉛筆圖示 →「版本」選「新版本」再部署，網址才會用到新的程式。
+
+### 試算表版要注意的事
+
+- 每次讀寫大約要等一兩秒，排行榜和作品牆打開時會先顯示「讀取中」。
+- 進度綁在玩家的瀏覽器。換裝置、清除瀏覽器資料或用無痕模式，就會變成新玩家。
+- 暱稱可以重複。
+- 每位玩家第一次寫入時，會登記一組只有他的瀏覽器知道的密碼，別人改不到他的紀錄。不過任何人都能不斷開新身分灌資料，分數也是在玩家的瀏覽器裡算的。朋友之間玩沒問題，正式比賽就需要更嚴格的後端。
+- 想整理資料，直接在試算表裡刪掉那幾列就好。
+
+## 之後想換成 Firebase
+
+`config.js` 裡已經留好 Firebase 的設定，把 `SLAY_SHEETS_URL` 清空、取消 Firebase 那段的註解，再照 `firestore.rules` 開資料庫就能切換。Firebase 版可以讓玩家綁定 Google 帳號，換裝置也能繼續玩。切換後試算表裡的舊排行榜不會自動搬過去。
 
 ## 放上 GitHub Pages
 
-1. 在 GitHub 建一個新的 repository，例如 `slaycure`。
-2. 把這個資料夾裡的四個檔案上傳上去。
-3. 到 repository 的 **Settings → Pages**，Source 選 `Deploy from a branch`，Branch 選 `main`、資料夾選 `/ (root)`，按 Save。
-4. 等一兩分鐘，遊戲就會出現在 `https://你的帳號.github.io/slaycure/`。
-
-## 要注意的事
-
-- 匿名玩家的進度綁在那個瀏覽器，換裝置或清除瀏覽器資料就會變成新玩家，除非先綁定 Google。
-- 暱稱可以重複，別人也能取一樣的名字。
-- 分數是在玩家的瀏覽器裡算的，懂程式的人有辦法改。朋友之間玩沒關係，要辦正式比賽就需要另外做後端驗證。
-- 遊戲裡的手部和人物插圖是用 AI 生成的。公開前請確認你使用的生圖服務允許這樣用。
+到 repository 的 **Settings → Pages**，Source 選 `Deploy from a branch`，Branch 選 `main`、資料夾選 `/ (root)`，按 Save。一兩分鐘後遊戲會出現在 `https://你的帳號.github.io/slaycure/`。
 
 ## 檔案
 
 | 檔案 | 用途 |
 | --- | --- |
 | `index.html` | 遊戲本體 |
-| `firebase-config.js` | Firebase 設定，留空就是單機模式 |
-| `firestore.rules` | 資料庫安全規則，貼到 Firestore 規則頁 |
-| `README.md` | 這份說明 |
+| `config.js` | 連線設定：試算表網址或 Firebase |
+| `apps-script/Code.gs` | 貼到試算表 Apps Script 的後端程式 |
+| `firestore.rules` | 改用 Firebase 時的資料庫規則 |
+
+遊戲裡的手部和人物插圖是用 AI 生成的，公開前請確認你使用的生圖服務允許這樣用。
