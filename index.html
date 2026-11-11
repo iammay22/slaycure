@@ -839,10 +839,16 @@ stage.addEventListener('pointerdown',e=>{
   if(e.target.closest('button')||curing||!nails.length)return;
   e.preventDefault();ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});try{stage.setPointerCapture(e.pointerId)}catch(_){}
   if(e.pointerType==='mouse'&&(e.button===1||e.button===2||spaceDown)){pan={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};stage.classList.add('live');return}
-  if(ptrs.size===2){cancelStroke();const pi=pinchInfo(),[sx,sy]=stageXY(pi.mx,pi.my);gest={d0:pi.d,z0:view.z,cx:(sx-view.x)/view.z,cy:(sy-view.y)/view.z};stage.classList.add('live');brushAt=null;frame();return}
+  if(ptrs.size===1)strokeBase=actions.length;
+  if(ptrs.size===2){cancelStroke();actions.length=Math.min(actions.length,strokeBase);rebuild();const pi=pinchInfo(),[sx,sy]=stageXY(pi.mx,pi.my);gest={d0:pi.d,z0:view.z,cx:(sx-view.x)/view.z,cy:(sy-view.y)/view.z};stage.classList.add('live');brushAt=null;frame();return}
   if(ptrs.size>2||gest||lockUntilUp)return;
   paintDown(e);
 });
+// 兩指縮放時，第一根手指可能已經留下點或色塊，這裡一起撤回
+let strokeBase=0;
+// iOS Safari 不一定尊重 touch-action，要擋掉它自己的縮放和捲動
+['gesturestart','gesturechange','gestureend'].forEach(t=>stage.addEventListener(t,e=>e.preventDefault()));
+stage.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 stage.addEventListener('pointermove',e=>{
   if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pan){view.x=pan.vx+e.clientX-pan.x;view.y=pan.vy+e.clientY-pan.y;setView(false);return}
@@ -857,7 +863,10 @@ function pointerEnd(e){
   if(pan){pan=null;stage.classList.remove('live');return}
   if(gest){if(ptrs.size<2){gest=null;lockUntilUp=ptrs.size>0;stage.classList.remove('live')}return}
   if(ptrs.size===0)lockUntilUp=false;
-  if(!cur)return;if(cur.t!=='cat')actions.push(cur);cur=null;if(e.pointerType!=='mouse')brushAt=null;rebuild();
+  if(!cur)return;
+  // 瀏覽器接手（例如系統縮放）時 pointercancel 會觸發，這一筆不算數
+  if(e.type==='pointercancel'){cancelStroke();brushAt=null;return}
+  if(cur.t!=='cat')actions.push(cur);cur=null;if(e.pointerType!=='mouse')brushAt=null;rebuild();
 }
 stage.addEventListener('pointerup',pointerEnd);stage.addEventListener('pointercancel',pointerEnd);
 stage.addEventListener('pointerleave',e=>{if(!cur&&brushAt&&e.pointerType==='mouse'){brushAt=null;frame()}});
