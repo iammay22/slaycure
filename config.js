@@ -1,7 +1,7 @@
 // Slaycure 的連線設定。兩個都留空時，遊戲照樣能玩，進度只存在玩家的瀏覽器。
 
 // 用 Google 試算表當資料庫：貼上 Apps Script 網頁應用程式的網址（步驟見 README.md）。
-window.SLAY_SHEETS_URL = "";
+window.SLAY_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyYlUXwUN-z1pcbwK_wBdezGm4RaiVysb8yHiCaWfepqeXdmsOC4k7TEYUXaOU4zZo/exec";
 
 // 之後想改用 Firebase：把上面的網址清空，再把下面的 null 換成註解裡那段設定。
 window.SLAY_FIREBASE = null;
