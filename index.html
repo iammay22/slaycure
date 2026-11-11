@@ -253,6 +253,9 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .modal{position:fixed;inset:0;background:rgba(46,31,42,.45);display:grid;place-items:center;z-index:50;padding:16px}
 .modal .card{width:min(360px,100%);display:flex;flex-direction:column;gap:10px}
 .modal img{width:46%;align-self:center;border-radius:12px;border:1px solid var(--line)}
+.modal .card.photo{text-align:center;align-items:center;max-height:92vh;overflow:auto}
+.modal .card.photo img{width:100%;aspect-ratio:360/566;object-fit:cover;max-height:70vh}
+.modal .card.photo h2{margin:0}
 .modal .btn:disabled{opacity:.55}
 .modal input{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
 .gtoast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(46,31,42,.9);color:#fff;border-radius:14px;padding:7px 16px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60;max-width:calc(100% - 32px);text-align:center}
@@ -387,6 +390,14 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
       <input id="saveName" maxlength="20" autocomplete="off">
       <p class="muted" id="saveNote" style="margin:0"></p>
       <div class="resbtns"><button class="btn ghost" id="btnSaveCancel">繼續修改</button><button class="btn" id="btnSaveOk">存起來</button></div>
+    </div>
+  </div>
+  <div class="modal" id="photoModal" hidden>
+    <div class="card photo">
+      <img id="photoImg" alt="">
+      <h2 id="photoName"></h2>
+      <p class="muted" id="photoBy" style="margin:0"></p>
+      <button class="btn ghost" id="btnPhotoClose">關閉</button>
     </div>
   </div>
 </div>
@@ -1097,17 +1108,30 @@ async function renderGallery(){
     const nm=await whoAre([...new Set(items.map(i=>i.uid))],rows);items.forEach(i=>i.authorName=nm[i.uid].name);
     N.textContent=items.length?'':'作品牆還是空的，你可以當第一個。'}
   items.forEach(d=>{const f=document.createElement('figure');f.className='gcard';
-    const im=new Image();im.alt=d.name||'';im.src=d.img;
+    const im=new Image();im.alt=d.name||'';im.src=d.img;im.title='點開看大圖';im.addEventListener('click',()=>openPhoto(d));
     const cap=document.createElement('figcaption');const n=document.createElement('b');n.textContent=d.name||'';const a=document.createElement('span');a.textContent=d.authorName||'';
     const lb=document.createElement('button');lb.className='like'+(myLikes.includes(d.key)?' on':'');lb.dataset.k=d.key;lb.textContent='♥ '+(likeCounts[d.key]||0);
     if(galTab==='mine'||d.uid===BE.uid||!BE.ok)lb.disabled=true;
     cap.append(n,a,lb);f.append(im,cap);G.appendChild(f)});
 }
-let likeBusy=false;
-$('#galList').addEventListener('click',async e=>{const b=e.target.closest('.like');if(!b||b.disabled||!BE.ok||likeBusy)return;
+// 按讚可以連續點、來回收回；寫入排隊依序送出，最後一次的狀態才會存
+let likeQueue=Promise.resolve();
+$('#galList').addEventListener('click',e=>{const b=e.target.closest('.like');if(!b||b.disabled||!BE.ok)return;
   const k=b.dataset.k,on=myLikes.includes(k);myLikes=on?myLikes.filter(x=>x!==k):[...myLikes,k].slice(-300);
   likeCounts[k]=Math.max(0,(likeCounts[k]||0)+(on?-1:1));b.classList.toggle('on',!on);b.textContent='♥ '+likeCounts[k];
-  likeBusy=true;await bSet('likes/'+BE.uid,{ids:myLikes});likeBusy=false});
+  const ids=[...myLikes];
+  likeQueue=likeQueue.then(async()=>{const ok=await bSet('likes/'+BE.uid,{ids});if(!ok){gtoast('按讚沒有存成功，等一下再試');renderGallery()}});
+});
+
+/* ---------- 看大圖 ---------- */
+function openPhoto(d){
+  $('#photoImg').src=d.img;$('#photoImg').alt=d.name||'';
+  $('#photoName').textContent=d.name||'未命名';
+  $('#photoBy').textContent=(d.authorName||'')+(d.tags?'・'+d.tags:'');
+  $('#photoModal').hidden=false;
+}
+$('#btnPhotoClose').onclick=()=>{$('#photoModal').hidden=true};
+$('#photoModal').addEventListener('click',e=>{if(e.target.id==='photoModal')$('#photoModal').hidden=true});
 
 /* ---------- free creation ---------- */
 let freeMode=false,freeHand='f',freeSkin=0;
