@@ -23,22 +23,22 @@ body{margin:0;font:14px/1.5 system-ui,sans-serif}img{max-width:100%}[hidden]{dis
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  background-image:linear-gradient(180deg,#F8F1F3 0,#F1EAEC 340px)}
+  background-image:linear-gradient(180deg,#FCE8EF 0,#F8EDF1 300px,#F1EAEC 640px)}
 .app{max-width:440px;margin:0 auto;padding-block:16px 32px;display:flex;flex-direction:column;gap:14px}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px}
 .logo{font-family:var(--f-display);font-style:italic;font-weight:500;font-size:28px;line-height:1}
 .logo b{color:var(--accent);font-weight:500}
 .stats{display:flex;gap:14px;font-size:12px;letter-spacing:.08em;color:var(--muted);font-variant-numeric:tabular-nums}
 .stats strong{color:var(--ink);font-weight:500;font-family:var(--f-display);font-size:15px;letter-spacing:0}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-bottom:4px solid #E4CFD8;border-radius:18px;padding:20px}
 h2{margin:0;font-family:var(--f-head);font-weight:700;font-size:20px;text-wrap:balance}
 .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:500}
 .muted{color:var(--muted);font-size:13px}
 button{font-family:inherit;cursor:pointer;color:var(--ink)}
 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn{border:1px solid var(--ink);background:var(--ink);color:#FDFAFB;font-weight:500;font-size:15px;letter-spacing:.06em;border-radius:999px;padding:12px 20px;transition:background .15s,transform .08s}
-.btn:active{transform:scale(.98)}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn{border:1px solid var(--ink);border-bottom:4px solid #000;background:var(--ink);color:#FDFAFB;font-weight:500;font-size:15px;letter-spacing:.06em;border-radius:999px;padding:12px 20px;transition:background .15s,transform .08s,border-bottom-width .08s}
+.btn:active{transform:translateY(3px);border-bottom-width:1px}
+.btn.ghost{background:var(--surface);color:var(--ink);border-color:var(--line);border-bottom-color:#CDBBC3}
 .btn.ghost:hover{border-color:var(--ink)}
 .btn.wide{width:100%}
 .hero{display:flex;flex-direction:column;gap:16px;padding:30px 24px 24px;text-align:center;align-items:center;background:radial-gradient(120% 80% at 50% 0%,#FBEFF3 0,#FDFAFB 60%)}
@@ -194,7 +194,8 @@ body.working header{display:none}
 .stats{align-items:baseline}
 .acct{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;letter-spacing:0}
 .lobby{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lobby button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+.lobby button{border:1px solid var(--line);border-bottom:4px solid #E4CFD8;background:#fff;border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;transition:transform .08s,border-bottom-width .08s}
+.lobby button:active{transform:translateY(3px);border-bottom-width:1px}
 .lobby b{font-family:var(--f-head);font-size:15px}
 .lobby span{font-size:12px;color:var(--muted)}
 .screenhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
@@ -231,8 +232,8 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .board b{font-family:var(--f-display);font-size:17px;font-weight:500;font-variant-numeric:tabular-nums}
 .board .unit{font-size:12px;color:var(--muted)}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
-.gcard{margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
-.gcard img{width:100%;aspect-ratio:360/566;object-fit:cover;display:block;background:#F6EFF2}
+.gcard{margin:0;border:1px solid var(--line);border-bottom:4px solid #E4CFD8;border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column;padding:8px 8px 0;box-sizing:border-box}
+.gcard img{width:100%;aspect-ratio:360/566;object-fit:cover;display:block;background:#F6EFF2;border-radius:8px;cursor:zoom-in}
 .gcard figcaption{padding:8px 10px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 6px;align-items:center}
 .gcard b{font-weight:500;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gcard span{grid-column:1;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -798,7 +799,8 @@ const holding=()=>tab==='polish'||tab==='detail';
 // geometry of the tool in the hand; the pointer holds the grip, the tip is where colour lands
 function brushGeo(){const k=1/view.z,bw=(nails.length?nails[1].nw*.52:9)*(has('t_brush')?1.25:1);
   return tab==='detail'?{k,bw,tipLen:13,stem:13+12*k,grip:13+12*k+34*k}:{k,bw,tipLen:22,stem:22+26*k,grip:22+26*k+30*k}}
-function tipFrom(p){const g=brushGeo().grip;return[p[0]-Math.sin(BR)*g,p[1]+Math.cos(BR)*g]}
+// 手指按在刷頭尖端下方一點，尖端就是落色的位置，刷身從尖端往右上延伸，不擋視線
+function tipFrom(p){return[p[0],p[1]-36/view.z]}
 function drawBrush(c,p){
   const{k,bw,stem}=brushGeo();base(c);c.save();c.translate(p[0],p[1]);c.rotate(BR);
   c.shadowColor='rgba(40,20,30,.28)';c.shadowBlur=8*k;c.shadowOffsetX=4*k;c.shadowOffsetY=6*k;
