@@ -1,13 +1,12 @@
-// 把 Firebase 專案的網頁設定貼在這裡（步驟見 README.md）。
-// 留空時遊戲照樣能玩，只是排行榜、作品牆和雲端存檔不會啟用。
-window.SLAY_FIREBASE = null;
-
-// 貼好後大概長這樣：
-// window.SLAY_FIREBASE = {
-//   apiKey: "AIza...",
-//   authDomain: "你的專案.firebaseapp.com",
-//   projectId: "你的專案",
-//   storageBucket: "你的專案.appspot.com",
-//   messagingSenderId: "1234567890",
-//   appId: "1:1234567890:web:abcdef"
-// };
+// Firebase 網頁設定（Firebase 主控台 → 專案設定 → 你的應用程式）。
+// 這些值本來就是公開的；資料安全靠 firestore.rules 的規則保護。
+// 想改回單機模式，把下面整段換成 window.SLAY_FIREBASE = null;
+window.SLAY_FIREBASE = {
+  apiKey: "AIzaSyDoUX4V6LRNBVlKXWDUjQOffF8h499djAo",
+  authDomain: "slaycure.firebaseapp.com",
+  projectId: "slaycure",
+  storageBucket: "slaycure.firebasestorage.app",
+  messagingSenderId: "698874901900",
+  appId: "1:698874901900:web:804d198a831e517b84d2a9",
+  measurementId: "G-7YLJE7SWFG"
+};
