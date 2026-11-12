@@ -258,10 +258,18 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .resbtns{display:grid;grid-template-columns:1fr 2fr;gap:8px}
 .resextra{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .resextra .btn[hidden]{display:none}
-.modal .card.cardpv{max-height:94vh;overflow:auto;gap:12px;width:min(380px,92vw)}
-.modal .card.cardpv img{height:min(64vh,560px);width:auto;max-width:100%;align-self:center;border:0;border-radius:14px}
-.cardbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.cardbtns .btn[hidden]{display:none}
+.modal .card.cardpv{position:relative;max-height:94vh;overflow:auto;gap:10px;width:min(360px,92vw);padding:16px}
+.cardframe{position:relative;align-self:center;height:min(60vh,540px);aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#F3B8CB,#E99AB4);box-shadow:0 18px 40px -20px rgba(110,30,70,.55)}
+.modal .cardframe img{width:100%;height:100%;max-width:none;display:block;border:0;border-radius:0;align-self:auto}
+.cardframe img:not([src]){display:none}
+.cardload{position:absolute;inset:0;display:none;place-items:center;color:#fff;font-size:14px;letter-spacing:.1em}
+.loading .cardload{display:grid}
+.cardhint{margin:0;text-align:center;font-size:12px;color:var(--muted)}
+.cardrow{display:flex;gap:8px}
+.cardrow .btn{flex:1}
+.cardrow .btn[hidden]{display:none}
+.cardx{position:absolute;top:10px;right:10px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid var(--hair,#E2D5DB);background:rgba(255,255,255,.9);display:grid;place-items:center;padding:0}
+.cardx .ico{width:18px;height:18px}
 .res .resbtns{position:sticky;bottom:12px;z-index:3}
 .res .resbtns .btn{box-shadow:0 6px 18px rgba(46,31,42,.2)}
 .res .resbtns .btn.ghost{background:var(--surface)}
@@ -362,11 +370,9 @@ h3.cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(
   </header>
 
   <section id="sStart" class="card hero">
-    <p class="eyebrow atelier">Nail Atelier・美甲沙龍</p>
     <div class="big">Slay<b>cure</b></div>
     <div class="trio" id="trio"></div>
     <p>幫客人做一雙漂亮的指甲。一位客人大約兩分鐘。</p>
-    <p class="tipnote">建議用 Safari 或 Chrome 開啟，LINE、IG 內建瀏覽器的存檔可能會消失。</p>
     <p class="visits" id="visits"></p>
     <button class="btn wide" id="btnStart">開門營業</button>
     <div class="lobby">
@@ -501,13 +507,11 @@ h3.cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(
   </div>
   <div class="modal" id="cardModal" hidden>
     <div class="card cardpv">
-      <img id="cardImg" alt="款式卡預覽">
-      <div class="cardbtns">
-        <button class="btn" id="btnCardDl">下載卡片</button>
-        <button class="btn ghost" id="btnCardShare">分享</button>
-        <button class="btn ghost" id="btnCardKeep" hidden>存成作品</button>
-        <button class="btn ghost" id="btnCardClose">關閉</button>
-      </div>
+      <button class="cardx" id="btnCardClose" aria-label="關閉"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="cardframe"><img id="cardImg" alt="款式卡預覽"><span class="cardload">款式卡沖洗中…</span></div>
+      <p class="cardhint">長按圖片也可以直接存到相簿</p>
+      <button class="btn wide" id="btnCardMain">分享到限動</button>
+      <div class="cardrow"><button class="btn ghost" id="btnCardSub">下載圖片</button><button class="btn ghost" id="btnCardKeep" hidden>存成作品</button></div>
     </div>
   </div>
   <div class="modal" id="browserModal" hidden>
@@ -1361,46 +1365,105 @@ function usedColors(){
   const seen=[];active().forEach(a=>[a.c,a.c2].forEach(h=>{if(!h)return;const p=POLISH.find(q=>q[0].toLowerCase()===String(h).toLowerCase());if(p&&!seen.includes(p[1]))seen.push(p[1])}));
   return seen.slice(0,4);
 }
-// 款式卡：IG 限動尺寸，粉色緞面底，中間一張微微歪斜的拍立得
-function makeCard(res){
+// 款式卡：IG 限動尺寸，像在店裡的網美打卡牆前拍的拍立得
+function rng(seed){return()=>(seed=(seed*16807)%2147483647)/2147483647}
+function sparkle(x,cx,cy,r,fill){x.fillStyle=fill;x.beginPath();x.moveTo(cx,cy-r);x.quadraticCurveTo(cx,cy,cx+r,cy);x.quadraticCurveTo(cx,cy,cx,cy+r);x.quadraticCurveTo(cx,cy,cx-r,cy);x.quadraticCurveTo(cx,cy,cx,cy-r);x.fill()}
+function wrapText(x,t,maxW){const out=[];let line='';for(const ch of t){if(x.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
+function loadImg(src){return new Promise(r=>{if(!src)return r(null);const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src})}
+async function makeCard(res){
   const CW=1080,CH=1920,c=document.createElement('canvas');c.width=CW;c.height=CH;const x=c.getContext('2d');
-  const g=x.createLinearGradient(0,0,CW,CH);g.addColorStop(0,'#FBE9EF');g.addColorStop(.5,'#F3D6DF');g.addColorStop(1,'#EBC7D3');x.fillStyle=g;x.fillRect(0,0,CW,CH);
-  [[.25,.6],[.7,.35]].forEach(([p,a])=>{const s=x.createLinearGradient(0,CH*p-300,CW,CH*p+300);s.addColorStop(0,'rgba(255,255,255,0)');s.addColorStop(.5,`rgba(255,255,255,${a})`);s.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=s;x.fillRect(0,0,CW,CH)});
-  const disp='"Bodoni Moda","Noto Serif TC",Georgia,serif',sans='"Noto Sans TC","PingFang TC",system-ui,sans-serif';
-  x.textAlign='center';x.fillStyle='#2E1F2A';x.font=`italic 500 96px ${disp}`;x.fillText('Slaycure',CW/2,190);
-  x.font=`400 30px ${sans}`;x.fillStyle='#8A6C79';x.fillText('今 日 作 品',CW/2,245);
-  // 拍立得
-  const PX=150,PY=300,PWd=780,photoW=700,photoH=Math.round(photoW*H/W),PHt=photoH+40+250;
-  x.save();x.translate(CW/2,PY+PHt/2);x.rotate(-.025);x.translate(-CW/2,-(PY+PHt/2));
-  x.shadowColor='rgba(110,60,80,.28)';x.shadowBlur=40;x.shadowOffsetY=18;x.fillStyle='#FFFFFF';x.fillRect(PX,PY,PWd,PHt);x.shadowColor='transparent';
-  x.fillStyle='#F7EDF1';x.fillRect(PX+40,PY+40,photoW,photoH);x.drawImage(cv,PX+40,PY+40,photoW,photoH);
-  const ty=PY+40+photoH;x.textAlign='left';
-  x.fillStyle='#2E1F2A';x.font=`700 54px ${sans}`;x.fillText(res.title,PX+48,ty+92);
-  x.font=`400 46px ${sans}`;x.fillStyle='#D4537E';x.fillText('★'.repeat(res.stars)+'☆'.repeat(3-res.stars),PX+48,ty+160);
-  let cx0=PX+48;x.font=`500 28px ${sans}`;
-  res.colors.forEach(n=>{const w=x.measureText(n).width+36;x.fillStyle='#FBEAF0';x.beginPath();x.roundRect(cx0,ty+190,w,46,23);x.fill();x.fillStyle='#993556';x.fillText(n,cx0+18,ty+223);cx0+=w+12});
-  x.textAlign='right';x.fillStyle='#B48A9B';x.font=`italic 400 40px ${disp}`;x.fillText('by may22',PX+PWd-44,ty+160);
+  const disp='"Bodoni Moda","Noto Serif TC",Georgia,serif',serif='"Noto Serif TC","Songti TC",serif',sans='"Noto Sans TC","PingFang TC",system-ui,sans-serif';
+  // 花牆：一朵一朵的玫瑰鋪滿，縫隙露出一點葉子
+  const bg=x.createLinearGradient(0,0,0,CH);bg.addColorStop(0,'#E8A3BA');bg.addColorStop(1,'#D9879F');x.fillStyle=bg;x.fillRect(0,0,CW,CH);
+  const R2=rng(res.seed||7),pal=['#FBE3EA','#F7C6D5','#FFF5F8','#F2AFC3','#F9D3DF'];
+  const spots=[];for(let row=0,y=-20;y<CH+90;row++,y+=96)for(let xx=(row%2?0:52);xx<CW+90;xx+=104)spots.push([xx+R2()*16-8,y+R2()*14-7,50+R2()*12]);
+  spots.forEach(([cx,cy])=>{if(R2()<.5){x.fillStyle=R2()<.5?'#86A07F':'#9DB594';x.save();x.translate(cx+46,cy+40);x.rotate(R2()*6.28);x.beginPath();x.ellipse(0,0,26,11,0,0,7);x.fill();x.restore()}});
+  spots.forEach(([cx,cy,r])=>{
+    const col=pal[Math.floor(R2()*pal.length)],dk=shade(col,.22),a0=R2()*6.28;
+    const base=x.createRadialGradient(cx,cy,r*.2,cx,cy,r);base.addColorStop(0,shade(col,.08));base.addColorStop(1,dk);x.fillStyle=base;x.beginPath();x.arc(cx,cy,r,0,7);x.fill();
+    [[7,r*.62,r*.5,.0],[5,r*.36,r*.4,.08],[4,r*.16,r*.28,.16]].forEach(([n,dist,pr,dark])=>{for(let k=0;k<n;k++){const t=a0+k*Math.PI*2/n+dark*4,px=cx+Math.cos(t)*dist,py=cy+Math.sin(t)*dist;
+      const g=x.createRadialGradient(px-pr*.3,py-pr*.4,1,px,py,pr);g.addColorStop(0,'#FFFFFF');g.addColorStop(.45,shade(col,dark));g.addColorStop(1,shade(col,dark+.18));
+      x.fillStyle=g;x.beginPath();x.ellipse(px,py,pr,pr*.78,t,0,7);x.fill()}});
+    x.strokeStyle=rgba(shade(col,.4),.5);x.lineWidth=2;x.lineCap='round';x.beginPath();for(let k=0;k<26;k++){const t=a0+k*.42,rr=2+k*.55;x.lineTo(cx+Math.cos(t)*rr,cy+Math.sin(t)*rr)}x.stroke();
+  });
+  // 中間打光、四角壓暗，讓拍立得跳出來
+  const glow=x.createRadialGradient(CW/2,CH*.48,80,CW/2,CH*.48,CH*.62);glow.addColorStop(0,'rgba(255,255,255,.55)');glow.addColorStop(.55,'rgba(255,240,245,.15)');glow.addColorStop(1,'rgba(120,30,70,.35)');x.fillStyle=glow;x.fillRect(0,0,CW,CH);
+  // 霓虹招牌掛在壓克力板上
+  x.save();x.shadowColor='rgba(60,10,30,.45)';x.shadowBlur=30;x.shadowOffsetY=12;x.fillStyle='rgba(48,14,32,.62)';x.beginPath();x.roundRect(150,92,780,268,40);x.fill();x.restore();
+  x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=2;x.beginPath();x.roundRect(150,92,780,268,40);x.stroke();
+  x.fillStyle='rgba(255,255,255,.75)';[[178,120],[902,120],[178,332],[902,332]].forEach(([a,b])=>{x.beginPath();x.arc(a,b,7,0,7);x.fill()});
+  x.textAlign='center';x.font=`italic 500 150px ${disp}`;
+  x.save();x.shadowColor='#FF3D8B';x.shadowBlur=46;x.strokeStyle='#FF6FAE';x.lineWidth=9;x.strokeText('Slaycure',CW/2,250);x.restore();
+  x.save();x.shadowColor='#FF8CC0';x.shadowBlur=16;x.fillStyle='#FFF6FA';x.fillText('Slaycure',CW/2,250);x.restore();
+  const d=new Date(),ds=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+  x.font=`500 30px ${sans}`;x.fillStyle='rgba(255,255,255,.95)';x.save();x.shadowColor='rgba(150,30,80,.45)';x.shadowBlur=8;
+  x.fillText(`T O D A Y ' S   S E T   ·   ${ds}`,CW/2,322);x.restore();
+  // 拍立得（方形底片）
+  const PX=150,PY=400,PWd=780,photo=700,PHt=photo+40+230;
+  x.save();x.translate(CW/2,PY+PHt/2);x.rotate(-.035);x.translate(-CW/2,-(PY+PHt/2));
+  x.save();x.shadowColor='rgba(90,20,55,.45)';x.shadowBlur=50;x.shadowOffsetY=24;x.fillStyle='#FFFEFD';x.fillRect(PX,PY,PWd,PHt);x.restore();
+  const ph=x.createLinearGradient(0,PY+40,0,PY+40+photo);ph.addColorStop(0,'#F9E8EE');ph.addColorStop(1,'#ECCAD6');x.fillStyle=ph;x.fillRect(PX+40,PY+40,photo,photo);
+  x.drawImage(cv,0,PH*.02,PW,PW,PX+40,PY+40,photo,photo);
+  const vig=x.createRadialGradient(PX+40+photo/2,PY+40+photo/2,photo*.35,PX+40+photo/2,PY+40+photo/2,photo*.75);vig.addColorStop(0,'rgba(0,0,0,0)');vig.addColorStop(1,'rgba(90,30,50,.18)');x.fillStyle=vig;x.fillRect(PX+40,PY+40,photo,photo);
+  // 底片日期戳記
+  x.textAlign='right';x.font=`500 34px "Courier New",monospace`;x.save();x.shadowColor='rgba(255,120,40,.9)';x.shadowBlur=10;x.fillStyle='#FF9A4A';
+  x.fillText(`'${String(d.getFullYear()).slice(2)} ${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getDate()).padStart(2,'0')}`,PX+40+photo-24,PY+40+photo-26);x.restore();
+  // 文字區
+  const ty=PY+40+photo;x.textAlign='left';
+  x.fillStyle='#2A1B26';x.font=`700 54px ${serif}`;x.fillText(res.title,PX+48,ty+90);
+  for(let k=0;k<3;k++)sparkle(x,PX+66+k*52,ty+146,22,k<res.stars?'#C9A04E':'#EADDE3');
+  let cx0=PX+48;x.font=`500 26px ${sans}`;
+  res.colors.forEach(n=>{const p=POLISH.find(q=>q[1]===n),w=x.measureText(n).width+62;if(cx0+w>PX+PWd-200)return;
+    x.fillStyle='#FBF1F4';x.beginPath();x.roundRect(cx0,ty+182,w,44,22);x.fill();
+    const g=x.createRadialGradient(cx0+20,ty+198,2,cx0+24,ty+204,15);g.addColorStop(0,'#fff');g.addColorStop(.35,p?p[0]:'#ccc');g.addColorStop(1,shade(p?p[0]:'#ccc',.2));x.fillStyle=g;x.beginPath();x.arc(cx0+24,ty+204,14,0,7);x.fill();
+    x.fillStyle='#7A4A5E';x.fillText(n,cx0+46,ty+213);cx0+=w+10});
+  x.textAlign='right';x.fillStyle='#B07A92';x.font=`italic 400 44px ${disp}`;x.fillText('by may22',PX+PWd-40,ty+150);
   x.restore();
-  x.textAlign='center';x.font=`400 30px ${sans}`;x.fillStyle='#8A6C79';x.fillText('iammay22.github.io/slaycure',CW/2,CH-110);
+  // 紙膠帶
+  [[PX+40,PY-14,-.5],[PX+PWd-150,PY-30,.45]].forEach(([tx,ty2,a])=>{x.save();x.translate(tx+80,ty2+26);x.rotate(a);
+    x.fillStyle='rgba(255,236,242,.78)';x.fillRect(-95,-26,190,52);x.fillStyle='rgba(232,150,180,.35)';for(let k=-90;k<95;k+=22)x.fillRect(k,-26,9,52);x.restore()});
+  // 客人的評語對話框貼紙
+  if(res.quote){
+    const av=await loadImg(res.img),bx=200,by=PY+PHt+40,bw=760;
+    x.save();x.translate(bx+bw/2,by+90);x.rotate(.03);x.translate(-(bx+bw/2),-(by+90));
+    x.font=`500 38px ${sans}`;const lines=wrapText(x,res.quote,bw-210).slice(0,2),bh=110+lines.length*50;
+    x.save();x.shadowColor='rgba(90,20,55,.3)';x.shadowBlur=26;x.shadowOffsetY=10;x.fillStyle='#FFFFFF';x.beginPath();x.roundRect(bx,by,bw,bh,40);x.fill();
+    x.beginPath();x.moveTo(bx+120,by);x.lineTo(bx+150,by-34);x.lineTo(bx+190,by);x.fill();x.restore();
+    if(av){x.save();x.beginPath();x.arc(bx+90,by+bh/2,62,0,7);x.closePath();x.fillStyle='#F6E9EE';x.fill();x.clip();x.drawImage(av,bx+28,by+bh/2-62,124,124);x.restore();
+      x.strokeStyle='#F4C0D1';x.lineWidth=5;x.beginPath();x.arc(bx+90,by+bh/2,62,0,7);x.stroke()}
+    x.textAlign='left';x.fillStyle='#C2607A';x.font=`700 28px ${sans}`;x.fillText(res.name||'客人',bx+178,by+58);
+    x.fillStyle='#2A1B26';x.font=`500 38px ${sans}`;lines.forEach((l,i)=>x.fillText(l,bx+178,by+108+i*50));
+    x.restore();
+  }
+  // 底部 hashtag
+  x.fillStyle='rgba(48,14,32,.5)';x.beginPath();x.roundRect(120,CH-210,CW-240,150,36);x.fill();
+  x.textAlign='center';x.save();x.shadowColor='rgba(120,20,70,.5)';x.shadowBlur=10;x.fillStyle='#FFFFFF';
+  x.font=`700 36px ${sans}`;x.fillText('#Slaycure   #今日美甲   #指尖小沙龍',CW/2,CH-140);
+  x.font=`500 28px ${sans}`;x.fillStyle='rgba(255,255,255,.92)';x.fillText('來玩 → iammay22.github.io/slaycure',CW/2,CH-96);x.restore();
   return c;
 }
 let cardBlob=null;
+const canShareFiles=()=>{try{return !!(navigator.canShare&&navigator.canShare({files:[new File([new Blob(['x'])],'a.png',{type:'image/png'})]}))}catch(e){return false}};
 async function openCard(){
   if(!lastRes)return;
-  try{await document.fonts.ready}catch(e){}
-  const c=makeCard({...lastRes,colors:usedColors(),title:STY[lastRes.style]||'指尖作品'});
-  $('#cardImg').src=c.toDataURL('image/png');
+  $('#cardModal').hidden=false;$('#cardImg').removeAttribute('src');$('#cardModal').classList.add('loading');
+  try{await Promise.all([`italic 500 150px "Bodoni Moda"`,`700 54px "Noto Serif TC"`,`500 38px "Noto Sans TC"`].map(f=>document.fonts.load(f)))}catch(e){}
+  const c=await makeCard({...lastRes,colors:usedColors(),title:STY[lastRes.style]||'指尖作品',quote:$('#reaction').textContent,img:C&&C.img,seed:Date.now()%100000+1});
+  $('#cardImg').src=c.toDataURL('image/png');$('#cardModal').classList.remove('loading');
   cardBlob=await new Promise(r=>c.toBlob(r,'image/png'));
+  const share=canShareFiles();
+  $('#btnCardMain').textContent=share?'分享到限動':'下載圖片';$('#btnCardMain').dataset.act=share?'share':'dl';
+  $('#btnCardSub').textContent=share?'下載圖片':'複製遊戲連結';$('#btnCardSub').dataset.act=share?'dl':'link';
   $('#btnCardKeep').hidden=lastRes.stars!==3;
-  $('#cardModal').hidden=false;
 }
+function cardDownload(){if(!cardBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(cardBlob);a.download='slaycure-card.png';document.body.appendChild(a);a.click();a.remove();gtoast('款式卡已下載')}
+async function cardShare(){if(!cardBlob)return;const f=new File([cardBlob],'slaycure-card.png',{type:'image/png'});
+  try{await navigator.share({files:[f],title:'Slaycure 款式卡',text:'來 Slaycure 做指甲 → https://iammay22.github.io/slaycure/'})}catch(e){if(!e||e.name!=='AbortError')cardDownload()}}
+async function cardLink(){try{await navigator.clipboard.writeText('https://iammay22.github.io/slaycure/');gtoast('已複製遊戲連結')}catch(e){gtoast('複製失敗，網址是 iammay22.github.io/slaycure')}}
+const cardAct=a=>a==='share'?cardShare():a==='dl'?cardDownload():cardLink();
 $('#btnShare').onclick=openCard;
-$('#btnCardDl').onclick=()=>{if(!cardBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(cardBlob);a.download='slaycure-card.png';document.body.appendChild(a);a.click();a.remove();gtoast('款式卡已下載')};
-$('#btnCardShare').onclick=async()=>{
-  if(!cardBlob)return;const f=new File([cardBlob],'slaycure-card.png',{type:'image/png'});
-  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Slaycure 款式卡',text:'來 Slaycure 做指甲 → https://iammay22.github.io/slaycure/'});return}catch(e){if(e&&e.name==='AbortError')return}}
-  try{await navigator.clipboard.writeText('https://iammay22.github.io/slaycure/');gtoast('已複製遊戲連結，卡片可以先下載再上傳')}catch(e){gtoast('這個瀏覽器不能分享，先按下載卡片')}
-};
+$('#btnCardMain').onclick=e=>cardAct(e.currentTarget.dataset.act);
+$('#btnCardSub').onclick=e=>cardAct(e.currentTarget.dataset.act);
 $('#btnCardKeep').onclick=()=>{$('#cardModal').hidden=true;if(lastRes&&lastRes.stars===3)openSave()};
 $('#btnCardClose').onclick=()=>{$('#cardModal').hidden=true};
 $('#cardModal').addEventListener('click',e=>{if(e.target.id==='cardModal')$('#cardModal').hidden=true});
