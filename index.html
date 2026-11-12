@@ -78,7 +78,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .clock.late{color:var(--warn)}
 .timer{height:2px;background:var(--line)}
 .timer i{display:block;height:100%;background:var(--accent);width:100%;transition:width .25s linear}
-.stage{position:relative;background:linear-gradient(118deg,transparent 34%,rgba(255,255,255,.6) 44%,transparent 54%),linear-gradient(205deg,transparent 22%,rgba(255,255,255,.45) 36%,transparent 48%),linear-gradient(165deg,#F9E8ED 0%,#F1D6DF 38%,#FAEEF2 66%,#EDCFD9 100%);border-radius:18px;overflow:hidden;touch-action:none;border:1px solid var(--line)}
+.stage{position:relative;background:radial-gradient(120% 70% at 50% 18%,rgba(255,255,255,.75),transparent 60%),linear-gradient(118deg,transparent 30%,rgba(255,255,255,.45) 42%,transparent 54%),linear-gradient(200deg,transparent 40%,rgba(255,255,255,.3) 52%,transparent 64%),linear-gradient(170deg,#F8E6EC 0%,#F1D5DF 45%,#EBC9D5 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.6),inset 0 18px 30px -18px rgba(255,255,255,.9),inset 0 -26px 40px -20px rgba(140,85,105,.32),inset 26px 0 40px -28px rgba(140,85,105,.22),inset -26px 0 40px -28px rgba(140,85,105,.22);border-radius:18px;overflow:hidden;touch-action:none;border:1px solid var(--line)}
 canvas{display:block;width:100%;height:auto;touch-action:none;transform-origin:0 0;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
 .zoom{position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:4px;justify-content:center;z-index:2}
 .zoom button{border:1px solid rgba(46,31,42,.15);background:rgba(253,250,251,.88);backdrop-filter:blur(6px);border-radius:999px;padding:4px 10px;font-size:12.5px}
@@ -276,6 +276,81 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .gtoast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(46,31,42,.9);color:#fff;border-radius:14px;padding:7px 16px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60;max-width:calc(100% - 32px);text-align:center}
 .gtoast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== 質感層：珍珠白、玫瑰金細線、緞面光澤 ===== */
+:root{--pearl:#FFFDFD;--rosegold:#C9A27E;--hair:rgba(185,145,120,.28);--plum:#2A1B26;--plum2:#3E2836;
+  --lift:0 1px 0 rgba(255,255,255,.9) inset,0 18px 40px -22px rgba(110,55,80,.35),0 2px 6px -2px rgba(110,55,80,.12)}
+body{background-color:#F3E4E9;background-image:
+  linear-gradient(115deg,transparent 18%,rgba(255,255,255,.55) 30%,transparent 44%),
+  linear-gradient(200deg,transparent 46%,rgba(255,255,255,.4) 58%,transparent 70%),
+  radial-gradient(120% 60% at 50% 0%,#FCEFF3 0%,transparent 70%),
+  linear-gradient(170deg,#F9EAEF 0%,#F2DCE4 55%,#ECD3DD 100%);background-attachment:fixed}
+header{border-bottom:0;position:relative}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--rosegold),transparent);opacity:.7}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,251,252,.86));border:1px solid var(--hair);border-bottom:1px solid var(--hair);box-shadow:var(--lift);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:22px}
+.eyebrow{color:#A88462;letter-spacing:.28em}
+.hero{background:radial-gradient(120% 70% at 50% 0%,rgba(252,236,242,.9) 0,rgba(255,253,253,.6) 65%)}
+.hero .atelier{margin:0 0 -6px;font-size:10.5px}
+.hero .big{letter-spacing:-.01em}
+.hero p{font-size:14px}
+.hero .tipnote{background:rgba(252,238,243,.8);border:1px solid rgba(194,96,122,.18);color:#A64A63}
+.trio .avatar{box-shadow:0 0 0 3px #fff,0 0 0 4px var(--hair),0 10px 20px -10px rgba(110,55,80,.4)}
+/* 按鈕：主按鈕深梅紅漸層，次按鈕珍珠白，保留下緣立體感但更細 */
+.btn{background:linear-gradient(180deg,var(--plum2),var(--plum));border:1px solid var(--plum);border-bottom:3px solid #140B11;letter-spacing:.12em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 18px -10px rgba(42,27,38,.6)}
+.btn:active{transform:translateY(2px);border-bottom-width:1px}
+.btn.ghost{background:linear-gradient(180deg,#FFFFFF,#FBF3F6);color:var(--ink);border:1px solid var(--hair);border-bottom:3px solid #E2CDD6;box-shadow:0 6px 14px -10px rgba(110,55,80,.35)}
+.btn.ghost:hover{border-color:rgba(185,145,120,.55)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.slim{padding:9px 12px;font-size:13.5px;letter-spacing:.08em}
+.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+/* 大廳四格 */
+.lobby button{background:linear-gradient(180deg,#FFFFFF,#FCF5F8);border:1px solid var(--hair);border-bottom:3px solid #EAD6DE;border-radius:18px;padding:14px 14px 12px;gap:4px;box-shadow:0 10px 22px -16px rgba(110,55,80,.4)}
+.lobby button .ico{width:26px;height:26px;color:#B0455F;margin-bottom:4px;padding:5px;box-sizing:content-box;border-radius:12px;background:#FBEAF0}
+.lobby b{font-size:15.5px;letter-spacing:.04em}
+/* 製作畫面：頁籤、底部按鈕列 */
+.tray{gap:12px}
+.tabs button.on{color:#A64A63;border-bottom-color:#B0455F;background:linear-gradient(180deg,transparent 40%,rgba(194,96,122,.08))}
+.actions{grid-template-columns:repeat(3,44px) 1fr 1fr;gap:8px;align-items:stretch}
+.actions .btn{font-size:14px;padding:10px 6px}
+.actions .ibtn{padding:0;display:grid;place-items:center;border-radius:50%;width:44px;height:44px;align-self:center}
+.actions .ibtn .ico{width:20px;height:20px}
+.btn.lampbtn{position:relative}
+.btn.lampbtn.need::after{position:absolute;top:-3px;right:-3px;margin:0;width:11px;height:11px;border:2px solid #fff;box-shadow:0 0 0 0 rgba(194,96,122,.5);animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,96,122,.55)}100%{box-shadow:0 0 0 10px rgba(194,96,122,0)}}
+.zoomctl button{background:rgba(255,253,253,.85);border:1px solid var(--hair);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 6px 14px -8px rgba(110,55,80,.4)}
+/* 結算頁 */
+.res{gap:14px;padding-bottom:12px}
+.res .shot{border-radius:16px;border:6px solid #fff;box-shadow:0 14px 30px -16px rgba(110,55,80,.5);max-height:26vh}
+.scores{gap:6px}
+.sc{background:linear-gradient(180deg,#fff,#FCF6F8);border:1px solid var(--hair);border-radius:14px}
+.sc.total{background:linear-gradient(180deg,var(--plum2),var(--plum));border-color:var(--plum)}
+.feedback{background:rgba(251,241,245,.7);border:1px solid rgba(194,96,122,.14);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.feedback:has(.notes:empty){display:none}
+.feedback .eyebrow{margin:0;font-size:10.5px}
+.res .resbtns{position:static;z-index:auto}
+.res .resbtns .btn{box-shadow:none}
+.res .resfoot{position:sticky;bottom:10px;z-index:3;display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:22px;
+  background:rgba(255,252,253,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--hair);box-shadow:0 16px 36px -18px rgba(110,55,80,.5)}
+.resextra{display:flex;gap:8px}
+.resextra .btn{flex:1}
+/* 商店 */
+.shoptabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+.shoptabs::-webkit-scrollbar{display:none}
+.shoptabs button{flex:0 0 auto;border:1px solid var(--hair);background:#fff;border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted);transition:all .15s}
+.shoptabs button.on{background:linear-gradient(180deg,var(--plum2),var(--plum));border-color:var(--plum);color:#fff}
+h3.cat{display:flex;align-items:center;gap:10px;margin:14px 0 2px;color:#A88462;letter-spacing:.22em;font-size:13px}
+h3.cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--hair),transparent)}
+.item{padding:12px 0;border-bottom:1px solid rgba(185,145,120,.16)}
+.item .info b{font-family:var(--f-head);font-weight:700;font-size:15px}
+.item .sw i{width:16px;height:16px;box-shadow:inset 0 -2px 3px rgba(0,0,0,.15),inset 0 2px 2px rgba(255,255,255,.5)}
+.btn.buy{min-width:76px;padding:8px 12px;font-family:var(--f-display);font-size:16px;letter-spacing:.02em;background:linear-gradient(180deg,#D8B48C,#B48B62);border-color:#A07850;border-bottom-color:#7E5B38;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.15)}
+.btn.buy small{font-size:11px;margin-right:2px;opacity:.85}
+.btn.buy:disabled{background:linear-gradient(180deg,#EFE6E9,#E4D8DD);border-color:#DCCDD3;border-bottom-color:#CDBBC3;color:#9C8A93;text-shadow:none;opacity:1}
+.owned{font-size:12px;color:#A88462;letter-spacing:.12em;border-color:rgba(185,145,120,.45)!important;background:#FFFBF7}
+/* 彈窗 */
+.modal{background:rgba(42,27,38,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+@media (prefers-reduced-motion:reduce){.btn.lampbtn.need::after{animation:none}}
 </style>
 <script src="config.js"></script>
 </head>
@@ -287,6 +362,7 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
   </header>
 
   <section id="sStart" class="card hero">
+    <p class="eyebrow atelier">Nail Atelier・美甲沙龍</p>
     <div class="big">Slay<b>cure</b></div>
     <div class="trio" id="trio"></div>
     <p>幫客人做一雙漂亮的指甲。一位客人大約兩分鐘。</p>
@@ -294,10 +370,10 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
     <p class="visits" id="visits"></p>
     <button class="btn wide" id="btnStart">開門營業</button>
     <div class="lobby">
-      <button data-go="free"><b>自由創作</b><span>設計自己的款式</span></button>
-      <button data-go="gallery"><b>作品牆</b><span>看大家的作品</span></button>
-      <button data-go="board"><b>排行榜</b><span>誰賺最多</span></button>
-      <button data-go="shop"><b>商店</b><span>買顏色和工具</span></button>
+      <button data-go="free"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4.5l5 5L10 19l-5 1 1-5zM12.5 6.5l5 5"/></svg><b>自由創作</b><span>設計自己的款式</span></button>
+      <button data-go="gallery"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 15l4.5-4 4 3.5 3-2.5L20 15M9 9.5a1 1 0 1 0 0-.01"/></svg><b>作品牆</b><span>看大家的作品</span></button>
+      <button data-go="board"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l4 4 4-6 4 6 4-4-1.5 10h-13zM5.5 20h13"/></svg><b>排行榜</b><span>誰賺最多</span></button>
+      <button data-go="shop"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2zM9 10V7a3 3 0 0 1 6 0v3"/></svg><b>商店</b><span>買顏色和工具</span></button>
     </div>
     <p class="byline">by may22</p>
   </section>
@@ -313,6 +389,7 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
   <section id="sShop" class="card" hidden>
     <div class="screenhead"><h2>商店</h2><button class="x" data-go="lobby" aria-label="回大廳">✕</button></div>
     <p class="muted" style="margin:0">錢包 <b id="shopWallet">0</b>・買到的東西會馬上出現在工具列，客人也會開始點。</p>
+    <div class="shoptabs" id="shopTabs"></div>
     <div id="shopList"></div>
   </section>
 
@@ -368,14 +445,14 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
         <button data-s="french" class="on">法式</button><button data-s="pearledge">珍珠邊</button><button data-s="cat">貓眼</button><button data-s="ombre">漸層</button><button data-s="aurora">極光</button><button data-s="dots">波點</button><button data-s="glitter">細閃</button><button data-s="detail">細節筆</button>
       </div>
       <div class="chips scrollrow" id="decoChips" hidden>
-        <button data-d="pearl" class="on">珍珠</button><button data-d="gem">水鑽</button><button data-d="beads">鋼珠鏈</button><button data-d="bow">蝴蝶結</button><button data-d="star">星星</button>
+        <button data-d="pearl" class="on">珍珠</button><button data-d="gem">水鑽</button><button data-d="beads">鋼珠鏈</button><button data-d="bow">蝴蝶結</button><button data-d="star">星星</button><button data-d="heart">愛心</button><button data-d="moon">月亮</button><button data-d="flower">小花</button>
       </div>
       <button class="allbtn" id="btnAll" hidden></button>
       <div id="shelfWrap"><div class="shelf scrollrow" id="shelf"></div></div>
       <div class="actions">
-        <button class="btn ghost" id="btnUndo">復原</button>
-        <button class="btn ghost" id="btnRedo" disabled>重做</button>
-        <button class="btn ghost" id="btnClear">清除</button>
+        <button class="btn ghost ibtn" id="btnUndo" aria-label="復原" title="復原"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+        <button class="btn ghost ibtn" id="btnRedo" aria-label="重做" title="重做" disabled><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+        <button class="btn ghost ibtn" id="btnClear" aria-label="清除" title="清除"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
         <button class="btn lampbtn" id="btnCure">照燈固化</button>
         <button class="btn" id="btnDone">交件</button>
       </div>
@@ -388,9 +465,11 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
     <img class="shot" id="shot" alt="這位客人的成品">
     <div class="scores" id="bars"></div>
     <p class="mastery" id="mastery"></p>
-    <ul class="notes" id="notes"></ul>
-    <div class="resextra"><button class="btn ghost" id="btnShare">看款式卡</button><button class="btn ghost" id="btnKeep" hidden>存成作品</button></div>
-    <div class="resbtns"><button class="btn ghost" id="btnLobby">回大廳</button><button class="btn" id="btnNext">下一位客人</button></div>
+    <div class="feedback"><p class="eyebrow">這次的評語</p><ul class="notes" id="notes"></ul></div>
+    <div class="resfoot">
+      <div class="resextra"><button class="btn ghost slim" id="btnShare">看款式卡</button><button class="btn ghost slim" id="btnKeep" hidden>存成作品</button></div>
+      <div class="resbtns"><button class="btn ghost" id="btnLobby">回大廳</button><button class="btn" id="btnNext">下一位客人</button></div>
+    </div>
   </section>
   <div class="modal" id="acctModal" hidden>
     <div class="card">
@@ -459,13 +538,17 @@ const POLISH=[
  ['#F4C6D0','櫻花粉','pink',.85],['#D9718F','玫瑰粉','pink',.85],['#C8233A','正紅','red',.86],['#6E1A2E','酒紅','red',.88],
  ['#EAD3C4','裸膚','nude',.85],['#C9A48A','奶茶','nude',.85],['#BBA6D9','芋紫','purple',.85],['#55355F','葡萄紫','purple',.88],
  ['#93AECB','霧藍','blue',.85],['#1E2B4A','午夜藍','blue',.88],['#AAB98C','抹茶','green',.85],['#2E4A3B','墨綠','green',.88],
- ['#FBF8F4','珍珠白','white',.88],['#18131A','曜石黑','black',.9],['#CDAE6E','香檳金','metal',.88],['#C4C8D0','月光銀','metal',.88]];
+ ['#FBF8F4','珍珠白','white',.88],['#18131A','曜石黑','black',.9],['#CDAE6E','香檳金','metal',.88],['#C4C8D0','月光銀','metal',.88],
+ ['#D8B4B4','霧玫瑰','pink',.85],['#A7B3A0','灰綠','green',.85],['#A898AE','煙紫','purple',.85],['#D9CBB8','燕麥','nude',.85],
+ ['#F28C6B','珊瑚橘','coral',.86],['#F3DC6B','檸檬黃','yellow',.86],['#A6DCC6','薄荷綠','green',.85],['#8EC5EA','天空藍','blue',.85],
+ ['#CFE3F2','冰藍透','blue',.42],['#DCCFEA','薰衣草透','purple',.42],['#F6D7DF','粉霧透','pink',.42],
+ ['#A8673E','焦糖','brown',.86],['#5B3A2E','可可','brown',.88],['#9A3B2A','楓紅','red',.86]];
 const famOf=c=>{const p=POLISH.find(p=>p[0]===c);return p?p[2]:null};
 const opOf=c=>{const p=POLISH.find(p=>p[0]===c);return p?p[3]:.85};
-const FAM={pink:'粉色系',red:'紅色系',nude:'奶茶裸色',purple:'紫色系',blue:'藍色系',green:'綠色系',white:'白色',black:'黑色',metal:'金屬色'};
+const FAM={pink:'粉色系',red:'紅色系',nude:'奶茶裸色',purple:'紫色系',blue:'藍色系',green:'綠色系',white:'白色',black:'黑色',metal:'金屬色',coral:'橘色系',yellow:'黃色系',brown:'咖啡色系'};
 const STY={solid:'清透單色',french:'法式',cat:'貓眼',ombre:'漸層',aurora:'極光鏡面',dots:'波點'};
 const NEED={solid:4,french:4,cat:4,ombre:4,aurora:4,dots:2};
-const DECO={pearl:'珍珠',gem:'水鑽',beads:'鋼珠鏈',bow:'蝴蝶結',star:'星星'};
+const DECO={pearl:'珍珠',gem:'水鑽',beads:'鋼珠鏈',bow:'蝴蝶結',star:'星星',heart:'愛心',moon:'月亮',flower:'小花'};
 const SHAPE={round:'圓形',oval:'橢圓',almond:'杏仁',square:'方圓'};
 const SKIN=['#FBE3D6','#F3D0BB','#E2B293','#BE8762','#86573C'];
 const HAIR=['#3B2A25','#221C26','#6B4230','#8A7F86','#9A86B8','#5A3A48','#B98374','#2F3A52'];
@@ -488,6 +571,10 @@ const SHOP=[
  {id:'p_sheer',cat:'顏色',name:'清透果凍組',desc:'蜜桃凍、奶茶透、乳白',price:150,colors:[1,2,3]},
  {id:'p_deep',cat:'顏色',name:'秋冬深色組',desc:'酒紅、葡萄紫、午夜藍、墨綠',price:220,colors:[7,11,13,15]},
  {id:'p_metal',cat:'顏色',name:'金屬色組',desc:'香檳金、月光銀，客人會開始點金光貓眼',price:300,colors:[18,19]},
+ {id:'p_morandi',cat:'顏色',name:'莫蘭迪組',desc:'霧玫瑰、灰綠、煙紫、燕麥，低調又耐看',price:180,colors:[20,21,22,23]},
+ {id:'p_candy',cat:'顏色',name:'夏日糖果組',desc:'珊瑚橘、檸檬黃、薄荷綠、天空藍，客人會開始點橘色和黃色',price:220,colors:[24,25,26,27]},
+ {id:'p_frost',cat:'顏色',name:'冰透糖霜組',desc:'冰藍透、薰衣草透、粉霧透，刷兩層最好看',price:160,colors:[28,29,30]},
+ {id:'p_cocoa',cat:'顏色',name:'焦糖可可組',desc:'焦糖、可可、楓紅，客人會開始點咖啡色',price:200,colors:[31,32,33]},
  {id:'s_cat',cat:'款式',name:'貓眼磁鐵',desc:'解鎖貓眼，客人開始點貓眼',price:350},
  {id:'s_aurora',cat:'款式',name:'極光粉',desc:'解鎖極光鏡面',price:280},
  {id:'s_dots',cat:'款式',name:'點珠筆',desc:'解鎖波點',price:200},
@@ -495,8 +582,14 @@ const SHOP=[
  {id:'d_gem',cat:'飾品',name:'水鑽盒',desc:'閃亮的圓形水鑽',price:150},
  {id:'d_beads',cat:'飾品',name:'鋼珠',desc:'拖曳畫出鋼珠鏈',price:180},
  {id:'d_bow',cat:'飾品',name:'蝴蝶結',desc:'用目前的顏色畫小蝴蝶結',price:150},
+ {id:'d_heart',cat:'飾品',name:'愛心貼',desc:'用目前的顏色貼小愛心',price:120},
+ {id:'d_moon',cat:'飾品',name:'金月亮',desc:'金色彎月，配深色很有氣氛',price:160},
+ {id:'d_flower',cat:'飾品',name:'小花貼',desc:'五瓣小花，花心是珍珠',price:180},
  {id:'t_brush',cat:'工具',name:'寬版刷子',desc:'刷頭寬 25%，刷得更快',price:300},
  {id:'t_lamp',cat:'工具',name:'速乾燈',desc:'照燈更快，每位客人多 10 秒',price:350},
+ {id:'u_candle',cat:'店面',name:'香氛蠟燭',desc:'客人比較放鬆，每位客人多 15 秒',price:250},
+ {id:'u_wall',cat:'店面',name:'網美打卡牆',desc:'拿到 3 星時客人會多給 20 小費',price:380},
+ {id:'u_card',cat:'店面',name:'會員集點卡',desc:'回頭客變多，所有小費多 10%',price:450},
  {id:'t_vip',cat:'店面',name:'VIP 招牌',desc:'偶爾來小費 1.5 倍的 VIP 客人',price:800},
 ];
 const LV=[0,3,8,15];
@@ -509,7 +602,7 @@ try{const s=JSON.parse(localStorage.getItem('slaycure-p')||'null');
 const has=id=>P.owned.includes(id);
 const hasColor=i=>BASE_COLORS.includes(i)||SHOP.some(s=>s.colors&&s.colors.includes(i)&&has(s.id));
 const STYLE_ITEM={cat:'s_cat',aurora:'s_aurora',dots:'s_dots',pearledge:'s_pearledge'};
-const DECO_ITEM={gem:'d_gem',beads:'d_beads',bow:'d_bow'};
+const DECO_ITEM={gem:'d_gem',beads:'d_beads',bow:'d_bow',heart:'d_heart',moon:'d_moon',flower:'d_flower'};
 const hasStyle=s=>!STYLE_ITEM[s]||has(STYLE_ITEM[s]);
 const hasDeco=d=>!DECO_ITEM[d]||has(DECO_ITEM[d]);
 const persist=()=>{try{localStorage.setItem('slaycure-p',JSON.stringify(P))}catch(e){}};
@@ -622,18 +715,18 @@ function newCustomer(){
   if(female){
     c.style=wpick([['solid',18],['french',18],['ombre',14],...(hasStyle('cat')?[['cat',20]]:[]),...(hasStyle('aurora')?[['aurora',14]]:[]),...(hasStyle('dots')?[['dots',16]]:[])]);
     c.fam=c.style==='french'?fp(['white','white','pink','nude','black']):c.style==='cat'?fp(['metal','nude','pink','purple','blue'])
-      :c.style==='aurora'||c.style==='dots'?fp(['nude','pink','white']):fp(['nude','pink','red','purple','blue','green']);
+      :c.style==='aurora'||c.style==='dots'?fp(['nude','pink','white']):fp(['nude','pink','red','purple','blue','green','coral','yellow','brown']);
     c.deco=R()<.55?pick(Object.keys(DECO).filter(hasDeco)):null;
     c.glitter=!['cat','aurora'].includes(c.style)&&R()<.3;
     c.shape=pick(['almond','almond','oval','square','round']);
     c.len=R()<.32?pick([1.35,1.7]):1;
   }else{
-    c.style=hasStyle('aurora')&&R()<.2?'aurora':'solid';c.fam=c.style==='aurora'?'nude':fp(['nude','black','blue','green']);
+    c.style=hasStyle('aurora')&&R()<.2?'aurora':'solid';c.fam=c.style==='aurora'?'nude':fp(['nude','black','blue','green','brown']);
     c.deco=null;c.glitter=false;c.shape='round';c.len=R()<.06?1.35:1;
   }
   c.vip=has('t_vip')&&R()<.2;c.lv=lvOf(P.mastery[c.style]);
   const base={solid:90,french:120,cat:110,ombre:110,aurora:100,dots:110}[c.style];
-  c.time=Math.round((base+(c.len>1?60:0)+(c.deco?15:0)+(c.lv>=2?15:0)+(has('t_lamp')?10:0))*(c.pers[1]===2?.8:1));
+  c.time=Math.round((base+(c.len>1?60:0)+(c.deco?15:0)+(c.lv>=2?15:0)+(has('t_lamp')?10:0)+(has('u_candle')?15:0))*(c.pers[1]===2?.8:1));
   const lenTxt={1.35:'短延',1.7:'中延'}[c.len];
   if(c.female){
     const p=[];
@@ -729,49 +822,29 @@ function buildHand(){
   drawHand();buildGloss();rebuild();
 }
 function masked(c,n){raw(c);c.globalCompositeOperation='destination-in';c.drawImage(n.mask,0,0);c.globalCompositeOperation='source-over'}
-// 手枕：畫在手的下面，和手同一層，所以縮放、拖曳都會一起動
+// 手枕：整個工作區就是枕面（CSS 背景），這裡只畫手壓出的凹陷和褶皺，邊緣全部淡出，跟著手縮放移動
 function drawPillow(c){
-  const cx=W*.52,cy=H*.8,rx=W*.45,ry=H*.155;
+  const cx=W*.55,cy=H*.74;
   c.save();
-  // 落在桌面上的影子
-  c.fillStyle='rgba(120,70,90,.28)';c.filter='blur(10px)';c.beginPath();c.ellipse(cx,cy+ry*.7,rx*.92,ry*.42,0,0,Math.PI*2);c.fill();c.filter='none';
-  // 枕身：上亮下暗，邊緣微微收進去
-  const body=new Path2D();
-  body.moveTo(cx-rx,cy);
-  body.bezierCurveTo(cx-rx,cy-ry*1.08,cx-rx*.35,cy-ry*1.2,cx,cy-ry*1.12);
-  body.bezierCurveTo(cx+rx*.35,cy-ry*1.2,cx+rx,cy-ry*1.08,cx+rx,cy);
-  body.bezierCurveTo(cx+rx,cy+ry*1.1,cx-rx,cy+ry*1.1,cx-rx,cy);
-  const g=c.createLinearGradient(0,cy-ry*1.2,0,cy+ry);
-  g.addColorStop(0,'#FFFFFF');g.addColorStop(.4,'#F7E2E9');g.addColorStop(.8,'#E7C6D2');g.addColorStop(1,'#CFA7B6');
-  c.fillStyle=g;c.fill(body);
-  c.save();c.clip(body);
-  // 手壓下去的凹陷：中間偏上的一團陰影
-  const dent=c.createRadialGradient(cx+W*.02,cy-ry*.62,4,cx+W*.02,cy-ry*.45,rx*.6);
-  dent.addColorStop(0,'rgba(150,95,115,.38)');dent.addColorStop(.55,'rgba(170,115,135,.14)');dent.addColorStop(1,'rgba(170,115,135,0)');
-  c.fillStyle=dent;c.fillRect(cx-rx,cy-ry*1.3,rx*2,ry*2.4);
-  // 凹陷邊緣被擠起來的亮邊
-  c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=5;c.filter='blur(3px)';
-  c.beginPath();c.ellipse(cx+W*.02,cy-ry*.5,rx*.62,ry*.62,0,Math.PI*1.05,Math.PI*1.95);c.stroke();
-  // 從凹陷往外散開的褶皺：一道暗、一道亮
-  const folds=[[-.95,.1],[-.7,-.55],[-.35,-.95],[.4,-.95],[.75,-.5],[.98,.15]];
+  const dent=c.createRadialGradient(cx,cy,6,cx,cy+8,W*.42);
+  dent.addColorStop(0,'rgba(140,85,105,.30)');dent.addColorStop(.5,'rgba(160,105,125,.12)');dent.addColorStop(1,'rgba(160,105,125,0)');
+  c.fillStyle=dent;c.fillRect(0,0,W,H);
+  // 凹陷外圍被擠起來的亮邊
+  const rim=c.createRadialGradient(cx,cy,W*.3,cx,cy,W*.46);
+  rim.addColorStop(0,'rgba(255,255,255,0)');rim.addColorStop(.55,'rgba(255,255,255,.32)');rim.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=rim;c.fillRect(0,0,W,H);
+  // 褶皺：從凹陷往外放射，暗線配亮線，越往外越淡
+  const folds=[[-1,.15],[-.85,-.5],[-.45,-.95],[.95,-.35],[1,.35],[-.9,.75],[.8,.85]];
+  c.lineCap='round';c.filter='blur(2px)';
   folds.forEach(([fx,fy],k)=>{
-    const sx=cx+W*.02+fx*rx*.42,sy=cy-ry*.5+fy*ry*.42,ex=cx+fx*rx*.92,ey=cy-ry*.35+fy*ry*.75;
-    const mx=(sx+ex)/2+(k%2?6:-6),my=(sy+ey)/2;
-    c.lineCap='round';
-    c.filter='blur(2.5px)';c.strokeStyle='rgba(140,85,105,.28)';c.lineWidth=4;
-    c.beginPath();c.moveTo(sx,sy);c.quadraticCurveTo(mx,my,ex,ey);c.stroke();
-    c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=2.5;
-    c.beginPath();c.moveTo(sx+2,sy-2);c.quadraticCurveTo(mx+2,my-2,ex+2,ey-2);c.stroke();
+    const len=Math.hypot(fx,fy),ux=fx/len,uy=fy/len;
+    const sx=cx+ux*W*.26,sy=cy+uy*W*.26,ex=cx+ux*W*.44,ey=cy+uy*W*.44,bend=(k%2?1:-1)*10;
+    const mx=(sx+ex)/2-uy*bend,my=(sy+ey)/2+ux*bend;
+    [['rgba(130,78,98,.30)',4.5,0],['rgba(255,255,255,.55)',2.6,-2.2]].forEach(([col,lw,off])=>{
+      const g=c.createLinearGradient(sx,sy,ex,ey);g.addColorStop(0,col);g.addColorStop(1,col.replace(/[\d.]+\)$/,'0)'));
+      c.strokeStyle=g;c.lineWidth=lw;c.beginPath();c.moveTo(sx+off,sy+off);c.quadraticCurveTo(mx+off,my+off,ex+off,ey+off);c.stroke();
+    });
   });
-  c.filter='none';
-  // 頂部的布料反光
-  const sheen=c.createLinearGradient(cx-rx,0,cx+rx,0);
-  sheen.addColorStop(0,'rgba(255,255,255,0)');sheen.addColorStop(.3,'rgba(255,255,255,.45)');sheen.addColorStop(.55,'rgba(255,255,255,0)');
-  c.fillStyle=sheen;c.fillRect(cx-rx,cy-ry*1.2,rx*2,ry*.35);
-  c.restore();
-  // 縫線
-  c.setLineDash([3,4]);c.strokeStyle='rgba(180,130,150,.45)';c.lineWidth=1;
-  c.beginPath();c.ellipse(cx,cy+ry*.02,rx*.97,ry*1.04,0,Math.PI*1.08,Math.PI*1.92);c.stroke();c.setLineDash([]);
   c.restore();
 }
 function drawHand(){
@@ -846,6 +919,9 @@ function decoDraw(c,a){
   if(a.s==='pearl')pearl(c,0,0,4.6);
   if(a.s==='gem'){c.fillStyle='#EEF6FF';c.strokeStyle='rgba(80,110,150,.6)';c.lineWidth=.5;c.beginPath();for(let k=0;k<8;k++){const t=k*Math.PI/4;c.lineTo(Math.cos(t)*4.2,Math.sin(t)*4.2)}c.closePath();c.fill();c.stroke();
     c.fillStyle='rgba(170,150,235,.5)';c.beginPath();c.moveTo(0,0);c.lineTo(4,1.6);c.lineTo(1.6,4);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.arc(-1.4,-1.4,1.1,0,7);c.fill()}
+  if(a.s==='heart'){c.fillStyle=a.c;c.beginPath();c.moveTo(0,4.6);c.bezierCurveTo(-6.2,.2,-4.4,-5.4,0,-2.2);c.bezierCurveTo(4.4,-5.4,6.2,.2,0,4.6);c.fill();c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.ellipse(-2.2,-1.8,1.1,.7,-.6,0,7);c.fill()}
+  if(a.s==='moon'){const g=c.createLinearGradient(-5,-5,5,5);g.addColorStop(0,'#F6E3A8');g.addColorStop(.5,'#CDAE6E');g.addColorStop(1,'#9C7B3E');c.fillStyle=g;c.save();c.beginPath();c.arc(0,0,5,0,Math.PI*2);c.clip();c.beginPath();c.arc(0,0,5,0,Math.PI*2);c.moveTo(6.4,-1.4);c.arc(2.3,-1.4,4.1,0,Math.PI*2);c.fill('evenodd');c.restore()}
+  if(a.s==='flower'){c.fillStyle=a.c;for(let k=0;k<5;k++){const t=-Math.PI/2+k*Math.PI*2/5;c.beginPath();c.ellipse(Math.cos(t)*2.9,Math.sin(t)*2.9,2.3,1.6,t,0,7);c.fill()}pearl(c,0,0,1.8)}
   if(a.s==='star'){c.fillStyle=a.c;c.beginPath();for(let k=0;k<10;k++){const r=k%2?2.4:5.6,t=-Math.PI/2+k*Math.PI/5;c.lineTo(Math.cos(t)*r,Math.sin(t)*r)}c.closePath();c.fill()}
   if(a.s==='bow'){c.strokeStyle=a.c;c.lineWidth=1.3;c.lineCap='round';c.lineJoin='round';c.beginPath();
     c.moveTo(0,0);c.bezierCurveTo(-3,-5,-7,-3,-5,0);c.bezierCurveTo(-4,2,-1.5,1,0,0);c.bezierCurveTo(3,-5,7,-3,5,0);c.bezierCurveTo(4,2,1.5,1,0,0);
@@ -1106,6 +1182,7 @@ function score(){
   const price={solid:600,french:900,cat:850,ombre:850,aurora:800,dots:850}[C.style]+(C.len>1?500:0);
   let tip=Math.round(price*[0,.04,.1,.18][stars]*(late?.5:1));if(!late&&elapsed()<C.time*.6)tip+=20;
   if(C.lv>=4)tip=Math.round(tip*1.2);if(C.vip)tip=Math.round(tip*1.5);
+  if(stars===3&&has('u_wall'))tip+=20;if(has('u_card'))tip=Math.round(tip*1.1);
   return{req,comp,prec,hyg:Math.max(0,hyg),total,stars,tip,notes};
 }
 function finish(){
@@ -1168,11 +1245,15 @@ $('#btnAll').onclick=()=>{if(curing||!nails.length)return;
 
 /* ---------- shop ---------- */
 function openShop(){renderShop();show('#sShop')}
+let shopCat='全部';
+$('#shopTabs').addEventListener('click',e=>{const b=e.target.closest('[data-sc]');if(!b)return;shopCat=b.dataset.sc;renderShop()});
 function renderShop(){
   $('#shopWallet').textContent=P.wallet;
-  $('#shopList').innerHTML=['顏色','款式','飾品','工具','店面'].map(c=>`<h3 class="cat">${c}</h3>`+SHOP.filter(s=>s.cat===c).map(s=>{
+  const cats=['顏色','款式','飾品','工具','店面'];
+  $('#shopTabs').innerHTML=['全部',...cats].map(c=>`<button data-sc="${c}" class="${c===shopCat?'on':''}">${c}</button>`).join('');
+  $('#shopList').innerHTML=cats.filter(c=>shopCat==='全部'||c===shopCat).map(c=>`<h3 class="cat">${c}</h3>`+SHOP.filter(s=>s.cat===c).map(s=>{
     const sw=s.colors?`<span class="sw">${s.colors.map(i=>`<i style="background:${POLISH[i][0]}"></i>`).join('')}</span>`:'';
-    return `<div class="item"><div class="info"><b>${s.name}</b>${sw}<span class="muted">${s.desc}</span></div>${has(s.id)?'<span class="owned">已擁有</span>':`<button class="btn buy" data-buy="${s.id}"${P.wallet<s.price?' disabled':''}>${s.price}</button>`}</div>`}).join('')).join('');
+    return `<div class="item"><div class="info"><b>${s.name}</b>${sw}<span class="muted">${s.desc}</span></div>${has(s.id)?'<span class="owned">已擁有</span>':`<button class="btn buy" data-buy="${s.id}"${P.wallet<s.price?' disabled':''}><small>$</small>${s.price}</button>`}</div>`}).join('')).join('');
 }
 $('#shopList').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(!b)return;const s=SHOP.find(x=>x.id===b.dataset.buy);
   if(!s||has(s.id))return;if(P.wallet<s.price){gtoast('錢包不夠，再多接幾位客人');return}
@@ -1344,6 +1425,7 @@ async function showVisits(){
   try{
     await sGet({action:'visit',id:BE.uid});
     const s=await sGet({action:'stats'});
+    if(!s||typeof s.today!=='number')return;
     el.textContent=`今天 ${s.today} 人來過・累計 ${s.total} 人次`;
   }catch(e){console.warn(e)}
 }
