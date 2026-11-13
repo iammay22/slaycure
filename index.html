@@ -1596,17 +1596,28 @@ const POSES=[
   {n:4,tip:[1090,1615],base:[1205,1625],w:58,h:'m'},{n:3,tip:[1122,1715],base:[1240,1805],w:78,h:'m'},
   {n:2,tip:[1012,1858],base:[1140,1965],w:88,h:'m'},{n:1,tip:[900,1972],base:[1005,2100],w:82,h:'m'},{n:0,tip:[818,1755],base:[705,1865],w:78,h:'m'}]},
  // 男生：雙手壓著帽簷，指尖朝上
- {id:'cap',name:'壓帽',for:'m',off:true,src:'poses/cap.webp',baseW:1199,crop:[50,212,1100,1100],slots:[
-  {n:4,tip:[135,645],base:[120,715],w:50},{n:3,tip:[360,540],base:[325,605],w:66},{n:2,tip:[480,545],base:[450,615],w:70},
-  {n:1,tip:[550,655],base:[535,728],w:70},{n:0,tip:[585,862],base:[580,930],w:58},
-  {n:0,tip:[660,868],base:[668,935],w:55},{n:1,tip:[672,680],base:[690,752],w:66},{n:2,tip:[742,580],base:[765,650],w:72},
-  {n:3,tip:[880,520],base:[905,585],w:66},{n:4,tip:[1110,592],base:[1100,668],w:55}]}];
+ {id:'cap',name:'壓帽',for:'m',src:'poses/cap.webp',baseW:1199,crop:[50,212,1100,1100],slots:[
+  {n:0,tip:[128,622],base:[86,703],w:54},{n:1,tip:[365,525],base:[327,592],w:66},{n:2,tip:[492,550],base:[470,620],w:70},
+  {n:3,tip:[557,657],base:[545,730],w:66},{n:4,tip:[602,842],base:[595,907],w:56},
+  {n:4,tip:[665,842],base:[662,910],w:54},{n:3,tip:[700,662],base:[707,740],w:68},{n:2,tip:[760,562],base:[780,637],w:72},
+  {n:1,tip:[897,520],base:[925,582],w:70},{n:0,tip:[1110,588],base:[1135,665],w:50}]}];
 const poseCache={};
 async function renderPose(pose){
   const im=poseCache[pose.id]||(poseCache[pose.id]=await loadImg(pose.src));if(!im)return null;
   const f=im.width/pose.baseW,[cx0,cy0,cw,ch]=pose.crop.map(v=>v*f);
   const c=document.createElement('canvas');c.width=Math.round(cw);c.height=Math.round(ch);const x=c.getContext('2d');
   x.drawImage(im,cx0,cy0,cw,ch,0,0,cw,ch);
+  // 客人膚色：跟遊戲裡的手一樣用相乘上色，只套在膚色的像素上，袖子、帽子、背景不變
+  if(C&&C.tint&&C.tint.toUpperCase()!=='#FFFFFF'){
+    const id=x.getImageData(0,0,c.width,c.height),d=id.data,[tr,tg,tb]=[1,3,5].map(i=>parseInt(C.tint.slice(i,i+2),16)/255);
+    // 膚色遮罩：紅比藍、紅比綠都明顯高的才算皮膚（衣服、帽子、背景差距小），再稍微模糊讓亮面也一起上色
+    const W=c.width,H=c.height,m=new Float32Array(W*H),cl=v=>v<0?0:v>1?1:v;
+    for(let p=0,i=0;p<W*H;p++,i+=4){const r=d[i],g=d[i+1],b=d[i+2];m[p]=cl((r-b-22)/12)*cl((r-g-15)/9)*cl((r/255-.3)/.2)}
+    const tmp=new Float32Array(W*H),R=3;
+    for(let y=0;y<H;y++){let acc=0;for(let x2=-R;x2<=R;x2++)acc+=m[y*W+Math.min(W-1,Math.max(0,x2))];for(let x2=0;x2<W;x2++){tmp[y*W+x2]=acc/(2*R+1);acc+=m[y*W+Math.min(W-1,x2+R+1)]-m[y*W+Math.max(0,x2-R)]}}
+    for(let x2=0;x2<W;x2++){let acc=0;for(let y=-R;y<=R;y++)acc+=tmp[Math.min(H-1,Math.max(0,y))*W+x2];for(let y=0;y<H;y++){m[y*W+x2]=Math.min(1,acc/(2*R+1)*1.4);acc+=tmp[Math.min(H-1,y+R+1)*W+x2]-tmp[Math.max(0,y-R)*W+x2]}}
+    for(let p=0,i=0;p<W*H;p++,i+=4){const w=m[p];if(w<=0.01)continue;d[i]*=1-w+w*tr;d[i+1]*=1-w+w*tg;d[i+2]*=1-w+w*tb}
+    x.putImageData(id,0,0)}
   const px=x.getImageData(0,0,c.width,c.height).data;
   const skinAt=(qx,qy)=>{const i=(Math.round(qy)*c.width+Math.round(qx))*4;return `rgb(${px[i]},${px[i+1]},${px[i+2]})`};
   pose.slots.forEach(sl=>{
