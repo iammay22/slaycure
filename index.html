@@ -1537,7 +1537,7 @@ const canShareFiles=()=>{try{return !!(navigator.canShare&&navigator.canShare({f
 // 座標以原圖寬 1696 量的；tip = 指尖端、base = 指甲根部、w = 指甲寬，n = 用遊戲裡哪一片指甲（0 拇指…4 小指）
 const POSES=[
  {id:'flat',name:'平放'},
- {id:'clasp',name:'雙手交握',src:'poses/clasp.webp',baseW:1696,crop:[250,850,1340,1340],slots:[
+ {id:'clasp',name:'雙手交握',src:'poses/clasp.webp',baseW:1696,crop:[300,1000,1200,1200],slots:[
   {n:1,tip:[700,1050],base:[555,1068],w:62},{n:0,tip:[838,1092],base:[930,1225],w:92},
   {n:2,tip:[670,1155],base:[555,1245],w:70},{n:3,tip:[705,1320],base:[590,1425],w:74},{n:4,tip:[765,1460],base:[655,1575],w:70},
   {n:4,tip:[1090,1615],base:[1205,1625],w:58},{n:3,tip:[1122,1715],base:[1240,1805],w:78},
@@ -1552,20 +1552,14 @@ async function renderPose(pose){
   const skinAt=(qx,qy)=>{const i=(Math.round(qy)*c.width+Math.round(qx))*4;return `rgb(${px[i]},${px[i+1]},${px[i+2]})`};
   pose.slots.forEach(sl=>{
     const n=nails[sl.n];if(!n)return;
-    const tx0=sl.tip[0]*f-cx0,ty0=sl.tip[1]*f-cy0,bx0=sl.base[0]*f-cx0,by0=sl.base[1]*f-cy0,w=sl.w*f*1.06;
-    const L0=Math.hypot(tx0-bx0,ty0-by0),ux=(tx0-bx0)/L0,uy=(ty0-by0)/L0;
-    // 量的根部偏指尖一點：整片往指根移，根部再多延伸一些，才會蓋到原圖的甲根
-    const tx=tx0-ux*L0*.04,ty=ty0-uy*L0*.04,bx=bx0-ux*L0*.14,by=by0-uy*L0*.14;
-    const L=Math.hypot(tx-bx,ty-by),k=L/(n.bot-n.natTop),kw=w/n.nw,mid=(n.natTop+n.bot)/2;
+    const tx=sl.tip[0]*f-cx0,ty=sl.tip[1]*f-cy0,bx=sl.base[0]*f-cx0,by=sl.base[1]*f-cy0,w=sl.w*f;
+    const L=Math.hypot(tx-bx,ty-by),ux=(tx-bx)/L,uy=(ty-by)/L,k=L/(n.bot-n.natTop),kw=w/n.nw,mid=(n.natTop+n.bot)/2;
     const ox=bx+ux*(n.bot-mid)*k,oy=by+uy*(n.bot-mid)*k;
-    // 只取玩家畫的那一層（不含手部線稿），底下墊一層素甲的顏色，原本指甲的輪廓就不會跟著跑過來
-    const [mc,mx]=mk();raw(mx);mx.drawImage(n.mask,0,0);mx.globalCompositeOperation='source-in';mx.fillStyle='#F4D9D6';mx.fillRect(0,0,PW,PH);
-    mx.globalCompositeOperation='source-over';mx.drawImage(layCv,0,0);if(cureInfo().any)mx.drawImage(glCv,0,0);
-    mx.globalCompositeOperation='destination-in';mx.drawImage(n.mask,0,0);
-    const skin=skinAt(bx-ux*w*.5,by-uy*w*.5);
+    const [mc,mx]=mk();raw(mx);mx.drawImage(cv,0,0);mx.globalCompositeOperation='destination-in';mx.drawImage(n.mask,0,0);
+    const skin=skinAt(bx-ux*w*.45,by-uy*w*.45);
     x.save();x.setTransform(-uy*kw,ux*kw,-ux*k,-uy*k,ox+ux*mid*k,oy+uy*mid*k);
     // 用手指的膚色把原圖的指甲蓋掉，再貼上玩家畫的指甲
-    x.fillStyle=skin;x.fill(nailPath(n.nw*1.2,n.natTop-n.nw*.14,n.cy+n.nw*.06,'round'));
+    x.fillStyle=skin;x.fill(nailPath(n.nw*1.1,n.natTop-n.nw*.05,n.cy+n.nw*.04,'round'));
     x.save();x.transform(n.inv.a,n.inv.b,n.inv.c,n.inv.d,n.inv.e,n.inv.f);x.scale(1/D,1/D);x.drawImage(mc,0,0);x.restore();
     const sL=n.bot-n.top;
     x.fillStyle='rgba(255,255,255,.55)';x.beginPath();x.roundRect(-n.nw*.26,n.top+sL*.14,n.nw*.12,sL*.34,n.nw*.06);x.fill();
