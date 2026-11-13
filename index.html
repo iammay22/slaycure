@@ -406,6 +406,17 @@ h3.cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(
 .photofoot{display:flex;align-items:center;justify-content:space-between;margin-top:4px;align-self:stretch;padding:0 4px}
 .like.big{font-size:15px;padding:8px 18px;border:1px solid var(--hair);background:#fff;color:#A64A63;border-radius:999px}
 @media (prefers-reduced-motion:reduce){.burst.go,.gcard.sk .ph{animation:none}}
+.fname{font-family:"Bodoni Moda","Noto Serif TC",Georgia,serif;font-style:italic;font-weight:600;font-synthesis:none;letter-spacing:.01em;
+  background:linear-gradient(100deg,#8E3A55,#C2607A 55%,#C9A04E);-webkit-background-clip:text;background-clip:text;color:transparent}
+.say .name.fname{font-size:24px;line-height:1.15}
+.order .txt b.fname{font-size:15px}
+.avatar.gold{box-shadow:0 0 0 3px #fff,0 0 0 6px #D4AE5E,0 10px 24px -10px rgba(150,110,40,.6)!important}
+.tags .chal{background:linear-gradient(180deg,#F1D79E,#C9A04E);border-color:#B48B3E;color:#fff;font-weight:700;letter-spacing:.06em}
+.plan{flex-basis:100%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:4px}
+.plan i{font-style:normal;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border:1px solid var(--hair,#E2D5DB);border-radius:12px;background:#fff;font-size:11.5px;color:var(--muted);text-align:center}
+.plan i b{font-size:13px;color:var(--ink)}
+.plan i em{width:16px;height:22px;border-radius:8px 8px 6px 6px;box-shadow:inset 0 -2px 3px rgba(0,0,0,.15),inset 0 2px 2px rgba(255,255,255,.5)}
+.plan i.acc{border-color:#C9A04E;background:#FFF9EE;color:#8A6A2E}
 </style>
 <script src="config.js"></script>
 </head>
@@ -764,12 +775,32 @@ function look(female){
   const pool=CHARS.map((c,i)=>i).filter(i=>CHARS[i].female===female&&i!==lastChar);const k=pick(pool);lastChar=k;
   const ch=CHARS[k];return{female,name:ch.name,img:ch.img,skin:SKIN[ch.si],tint:TINTS[ch.si]};
 }
+const FINGER=['大拇指','食指','中指','無名指','小指'],FS=['拇','食','中','無','小'];
+// 某種款式＋色系的說法，點單和評語共用
+const styleSay=(st,fam)=>st==='solid'?`${FAM[fam]}的清透單色`:st==='french'?`${FAM[fam]}法式`:st==='cat'?(fam==='metal'?'金光貓眼':`${FAM[fam]}的貓眼`)
+  :st==='ombre'?`${FAM[fam]}漸層`:st==='aurora'?`${FAM[fam]}極光`:`${FAM[fam]}打底的波點`;
+const famColor=f=>(POLISH.find(q=>q[2]===f)||['#ccc'])[0];
+// 挑戰客人：最多兩種款式分給不同手指，再指定一根手指貼飾品、延甲長度和甲型
+function makeChallenge(c,fp){
+  const styles=['solid','french','ombre',...(hasStyle('cat')?['cat']:[]),...(hasStyle('aurora')?['aurora']:[]),...(hasStyle('dots')?['dots']:[])];
+  const famFor=st=>st==='french'?fp(['white','pink','nude']):st==='cat'?fp(['metal','pink','purple','blue']):st==='aurora'||st==='dots'?fp(['nude','pink','white'])
+    :fp(['nude','pink','red','purple','blue','green','coral','yellow','brown']);
+  const a=pick(['solid','solid','french','ombre']),b=pick(styles.filter(x=>x!==a));
+  const fa=famFor(a);let fb=famFor(b);if(b==='solid'&&fb===fa)fb=fp(['red','purple','blue','green','brown','black'].filter(f=>f!==fa));
+  const acc=pick([[3],[0,3],[3,4],[1,3],[0,2,4]]);
+  c.plan=[0,1,2,3,4].map(i=>acc.includes(i)?{style:b,fam:fb}:{style:a,fam:fa});
+  c.acc=acc;c.style=a;c.fam=fa;c.challenge=true;
+  const ds=Object.keys(DECO).filter(hasDeco).filter(d=>d!=='beads');
+  c.deco=ds.length?pick(ds):null;c.decoN=c.deco?pick([0,1,2,3,4]):null;
+  c.glitter=false;c.shape=pick(['almond','oval','square']);c.len=pick([1.35,1.7]);
+}
 const wpick=o=>{let s=o.reduce((a,b)=>a+b[1],0)*R();for(const [k,w] of o){if((s-=w)<=0)return k}return o[0][0]};
 function newCustomer(){
   const female=R()<0.75;const c=Object.assign(look(female),{pers:pick(PERS),flagged:R()<0.14});
   const fams=[...new Set(POLISH.map((p,i)=>hasColor(i)?p[2]:null).filter(Boolean))];
   const fp=list=>{const ok=list.filter(f=>fams.includes(f));return pick(ok.length?ok:fams)};
-  if(female){
+  if(female&&!freeMode&&P.served>=5&&R()<1/8)makeChallenge(c,fp);
+  else if(female){
     c.style=wpick([['solid',18],['french',18],['ombre',14],...(hasStyle('cat')?[['cat',20]]:[]),...(hasStyle('aurora')?[['aurora',14]]:[]),...(hasStyle('dots')?[['dots',16]]:[])]);
     c.fam=c.style==='french'?fp(['white','white','pink','nude','black']):c.style==='cat'?fp(['metal','nude','pink','purple','blue'])
       :c.style==='aurora'||c.style==='dots'?fp(['nude','pink','white']):fp(['nude','pink','red','purple','blue','green','coral','yellow','brown']);
@@ -783,9 +814,13 @@ function newCustomer(){
   }
   c.vip=has('t_vip')&&R()<.2;c.lv=lvOf(P.mastery[c.style]);
   const base={solid:90,french:120,cat:110,ombre:110,aurora:100,dots:110}[c.style];
-  c.time=Math.round((base+(c.len>1?60:0)+(c.deco?15:0)+(c.lv>=2?15:0)+(has('t_lamp')?10:0)+(has('u_candle')?15:0))*(c.pers[1]===2?.8:1));
+  c.time=Math.round((base+(c.challenge?90:0)+(c.len>1?60:0)+(c.deco?15:0)+(c.lv>=2?15:0)+(has('t_lamp')?10:0)+(has('u_candle')?15:0))*(c.pers[1]===2?.8:1));
   const lenTxt={1.35:'短延',1.7:'中延'}[c.len];
-  if(c.female){
+  if(c.challenge){
+    const accN=c.acc.map(i=>FINGER[i]).join('和'),pl=c.plan;
+    c.req=`挑戰點單：想做${{1.35:'短延',1.7:'中延'}[c.len]}的${SHAPE[c.shape]}甲。${accN}做${styleSay(pl[c.acc[0]].style,pl[c.acc[0]].fam)}，其他做${styleSay(c.style,c.fam)}`
+      +(c.deco?`，${FINGER[c.decoN]}貼一個${DECO[c.deco]}`:'')+'。做得到嗎？';
+  }else if(c.female){
     const p=[];
     if(c.len>1)p.push(`想做${lenTxt}的${SHAPE[c.shape]}甲`);else p.push(`修成${SHAPE[c.shape]}`);
     p.push(c.style==='solid'?`${FAM[c.fam]}的清透單色`:c.style==='french'?`法式，邊邊用${FAM[c.fam]}`
@@ -802,9 +837,11 @@ function avatar(c,mood){
 $('#trio').innerHTML=[0,4,3].map(i=>`<div class="avatar">${avatar(CHARS[i],'ok')}</div>`).join('');
 function showCustomer(){
   freeMode=false;newCustomer();
-  $('#avatar').innerHTML=avatar(C,'ok');$('#custName').textContent=C.name;$('#custReq').textContent=C.req;
+  $('#avatar').innerHTML=avatar(C,'ok');$('#custName').textContent=C.name;$('#custName').classList.add('fname');$('#custReq').textContent=C.req;
   const tags=[...(C.vip?['VIP 小費 ×1.5']:[]),STY[C.style]+' Lv'+C.lv,SHAPE[C.shape]+(C.len>1?'・延甲':''),C.style==='cat'&&C.fam==='metal'?'奶茶＋金光':FAM[C.fam],C.pers[0],'⏱ '+C.time+' 秒'];
-  $('#ticket').innerHTML=tags.map(x=>`<span>${x}</span>`).join('');
+  $('#ticket').innerHTML=(C.challenge?'<span class="chal">挑戰客人・小費 ×2</span>':'')+tags.map(x=>`<span>${x}</span>`).join('')
+    +(C.plan?'<div class="plan">'+C.plan.map((t,i)=>`<i class="${C.acc.includes(i)?'acc':''}"><b>${FS[i]}</b><em style="background:${famColor(t.fam)}"></em>${STY[t.style]}${C.decoN===i?'＋'+DECO[C.deco]:''}</i>`).join('')+'</div>':'');
+  $('#avatar').classList.toggle('gold',!!C.challenge);
   prep={wash:false,tools:false,inspect:false,acceptedSick:false};
   $$('.check').forEach(b=>{b.classList.remove('on');b.querySelector('.box').textContent=''});
   $('#inspectBox').hidden=true;$('#btnWork').disabled=false;
@@ -1183,7 +1220,7 @@ $('#btnCure').onclick=()=>{if(curing||!nails.length)return;if(!cureInfo().pendin
 function startWork(){
   actions=[];redoStack=[];lastLen=0;cur=null;len=1;shape='round';tab='shape';syncTray();setTimeout(tipToast,400);
   $('#lenLab').hidden=$('#lenChips').hidden=C.len===1;chipSet('#lenChips',$('#lenChips button[data-l="1"]'));chipSet('#shapeChips',$('#shapeChips button[data-sh="round"]'));
-  $('#avatarS').innerHTML=C.free?'<span class="freeic">✎</span>':avatar(C,'ok');$('#workReq').innerHTML=`<b>${C.name}</b>　${C.req}`;
+  $('#avatarS').innerHTML=C.free?'<span class="freeic">✎</span>':avatar(C,'ok');$('#workReq').innerHTML=`<b class="fname">${C.name}</b>　${C.req}`;$('#avatarS').classList.toggle('gold',!!C.challenge);
   $('#sWork').classList.toggle('free',!!C.free);$('#btnDone').textContent=C.free?'完成':'交件';refreshLocks();
   show('#sWork');fitCanvas();zoomTo(-1);ready.then(()=>{useHand(C.female?'f':'m');buildHand()});
   tStart=Date.now();clearInterval(tick);if(!C.free){tick=setInterval(updClock,250);updClock()}
@@ -1207,17 +1244,21 @@ function analyze(){
 function score(){
   const{st,decos,details}=analyze(),notes=[],parts=[];
   const nude=s=>['nude','pink'].includes(famOf(s.base));
-  const match=s=>{switch(C.style){
-    case'french':return s.french&&famOf(s.french)===C.fam;
-    case'cat':return s.cat&&(C.fam==='metal'?famOf(s.cat)==='metal'&&nude(s):famOf(s.cat)===C.fam||famOf(s.base)===C.fam);
-    case'ombre':return s.ombre&&famOf(s.ombre)===C.fam;case'aurora':return s.aurora&&famOf(s.base)===C.fam;
-    case'dots':return s.dots&&famOf(s.base)===C.fam;default:return famOf(s.base)===C.fam}};
-  const need=NEED[C.style],hits=st.filter(match).length;parts.push(Math.min(1,hits/need));
+  const mt=(s,sty,fam)=>{if(!s)return false;switch(sty){
+    case'french':return s.french&&famOf(s.french)===fam;
+    case'cat':return s.cat&&(fam==='metal'?famOf(s.cat)==='metal'&&nude(s):famOf(s.cat)===fam||famOf(s.base)===fam);
+    case'ombre':return s.ombre&&famOf(s.ombre)===fam;case'aurora':return s.aurora&&famOf(s.base)===fam;
+    case'dots':return s.dots&&famOf(s.base)===fam;default:return famOf(s.base)===fam}};
+  const match=s=>mt(s,C.style,C.fam);
+  if(C.plan){const bad=[0,1,2,3,4].filter(i=>!mt(st[i],C.plan[i].style,C.plan[i].fam));parts.push((5-bad.length)/5);
+    bad.forEach(i=>notes.push(`${FINGER[i]}應該是${styleSay(C.plan[i].style,C.plan[i].fam)}`))}
+  const need=NEED[C.style],hits=C.plan?5:st.filter(match).length;if(!C.plan)parts.push(Math.min(1,hits/need));
   if(hits<need)notes.push(`${STY[C.style]}只做到 ${hits} 片符合（至少要 ${need} 片）`);
-  if(C.style==='dots'){const b=st.filter(s=>famOf(s.base)===C.fam).length;parts.push(Math.min(1,b/5));if(b<5)notes.push('打底色沒有每片都刷')}
+  if(C.style==='dots'&&!C.plan){const b=st.filter(s=>famOf(s.base)===C.fam).length;parts.push(Math.min(1,b/5));if(b<5)notes.push('打底色沒有每片都刷')}
   if(shape!==C.shape){parts.push(0);notes.push(`客人要${SHAPE[C.shape]}，你修成了${SHAPE[shape]}`)}else parts.push(1);
   const onNail=p=>nailAt(p)>=0;
-  if(C.deco){const ok=decos.some(d=>d.s===C.deco&&(d.s==='beads'?d.p.some(onNail):onNail([d.x,d.y])));parts.push(ok?1:0);if(!ok)notes.push(`少了客人要的${DECO[C.deco]}`)}
+  if(C.deco){const onT=C.decoN!=null?(q=>nailAt(q)===C.decoN):onNail;const ok=decos.some(d=>d.s===C.deco&&(d.s==='beads'?d.p.some(onT):onT([d.x,d.y])));parts.push(ok?1:0);
+    if(!ok)notes.push(C.decoN!=null?`${FINGER[C.decoN]}少了客人要的${DECO[C.deco]}`:`少了客人要的${DECO[C.deco]}`)}
   if(C.glitter){const ok=st.some(s=>s.glitter);parts.push(ok?1:0);if(!ok)notes.push('少了細閃')}
   if(C.len>1){const v=len===1?0:Math.abs(len-C.len)<.01?1:len>2?.3:.6;parts.push(v);
     if(len===1)notes.push('客人要延甲，但沒有延長');else if(len>2)notes.push('延太長了，日常容易斷裂、翻甲');else if(v<1)notes.push('延甲長度跟客人要的不同')}
@@ -1235,18 +1276,21 @@ function score(){
   let total=(req*50+comp*30+prec*20)*(.8+.2*hyg)+(C.pers[1]===1?-8:C.pers[1]===0?4:0);
   if(C.flagged){total-=30;notes.unshift(prep.acceptedSick?'明知指緣發炎還施作，客人回家更痛了':'沒有檢查指甲，客人的指緣其實在發炎')}
   total=Math.round(clamp(total,0,100));
-  let stars=total>=85?3:total>=60?2:1;const late=elapsed()>C.time;if(late){if(stars>2)stars=2;notes.push('超過預約時間，最多 2 星')}
+  let stars=total>=85?3:total>=60?2:1;if(C.challenge&&req<.999&&stars>2){stars=2;notes.push('挑戰客人要每一項都做到，才會給 3 星')}const late=elapsed()>C.time;if(late){if(stars>2)stars=2;notes.push('超過預約時間，最多 2 星')}
   const price={solid:600,french:900,cat:850,ombre:850,aurora:800,dots:850}[C.style]+(C.len>1?500:0);
   let tip=Math.round(price*[0,.04,.1,.18][stars]*(late?.5:1));if(!late&&elapsed()<C.time*.6)tip+=20;
-  if(C.lv>=4)tip=Math.round(tip*1.2);if(C.vip)tip=Math.round(tip*1.5);
+  if(C.lv>=4)tip=Math.round(tip*1.2);if(C.vip)tip=Math.round(tip*1.5);if(C.challenge)tip*=2;
   if(stars===3&&has('u_wall'))tip+=20;if(has('u_card'))tip=Math.round(tip*1.1);
   return{req,comp,prec,hyg:Math.max(0,hyg),total,stars,tip,notes};
 }
+const CLINES={3:['挑戰成功！這組我要裱框掛在家裡','你真的懂我，每根手指都對了','這難度你也做得出來？我服了','老實說我本來想刁難你，結果直接被你圈粉','我要把你介紹給整個姊妹群組','完美，連我自己都沒想到會這麼好看'],
+  2:['有幾根跟我說的不太一樣，但整體還行','差一點點就完美了，好可惜','看得出很努力，下次再挑戰一次','我要的那幾根細節沒到位欸','還可以啦，但我是來挑戰的耶','嗯…算你過關，勉強'],
+  1:['這跟我說的完全兩回事吧','每根都不一樣，但不是我要的那種不一樣','挑戰失敗，下次再來','我說的是無名指欸…','好吧，看來這組真的太難了','我先回家冷靜一下']};
 function finish(){
   clearInterval(tick);cur=null;zoomTo(-1);frame();const r=score();
   const lines={3:['也太 slay 了吧，我要拍照發限動！','絕絕子！下次直接預約你，先幫我留位','這個色我愛了愛了，手好美捨不得洗手','我直接截圖傳給閨蜜，她一定要你的聯絡方式','這款真的會謝，今天的 OOTD 就靠它了','蚌埠住了，這也太好看，我要哭了'],2:['還不錯啦，謝謝你～','嗯，蠻可愛的，有種清爽感','跟我想的有點不一樣，但也 ok 啦','可以可以，就是差那麼一點點氣質','還行，拍起來應該還好看','普通好看，但不會讓我尖叫'],1:['呃…跟我說的完全不一樣欸','我真的無語，回家自己修好了','這樣子出門我會有點社死','下次不敢再找你了QAQ','emmm 我再想想…','這是什麼我不太懂，有點崩潰']};
   $('#avatar2').innerHTML=avatar(C,r.stars===3?'happy':r.stars===2?'ok':'sad');
-  $('#resName').textContent=C.name;$('#reaction').textContent=pick(lines[r.stars]);
+  $('#resName').textContent=C.name;$('#resName').classList.add('fname');$('#reaction').textContent=pick((C.challenge?CLINES:lines)[r.stars]);$('#avatar2').classList.toggle('gold',!!C.challenge);
   $('#stars').innerHTML=[1,2,3].map(i=>`<span class="${i<=r.stars?'':'off'}">✦</span>`).join('');
   $('#shot').hidden=false;{const s=document.createElement('canvas');s.width=PW;s.height=PH;const sx=s.getContext('2d');const g=sx.createLinearGradient(0,0,PW,PH);g.addColorStop(0,'#FBF6F6');g.addColorStop(1,'#EFE5EA');sx.fillStyle=g;sx.fillRect(0,0,PW,PH);sx.drawImage(cv,0,0);$('#shot').src=s.toDataURL('image/png')}
   const bar=(l,v,cls='')=>`<div class="sc ${cls}"><b>${Math.round(v*100)}</b><span>${l}</span></div>`;
@@ -1256,12 +1300,12 @@ function finish(){
   const k=C.style,before=lvOf(P.mastery[k]);if(r.stars>=2)P.mastery[k]=(P.mastery[k]||0)+1;const n=P.mastery[k]||0,lv=lvOf(n);
   const perk={2:'預約時間多 15 秒',3:'可以一鍵套用到全部指甲',4:'小費多 20%'};
   $('#mastery').textContent=`${STY[k]}熟練度 Lv${lv}`+(lv>before?`・升級了！${perk[lv]}`:lv<4?`・再做好 ${LV[lv]-n} 位升到 Lv${lv+1}`:'・已滿級')+(r.stars<2?'（2 星以上才算數）':'');
-  lastRes={stars:r.stars,tip:r.tip,style:C.style,name:C.name};
+  lastRes={stars:r.stars,tip:r.tip,style:C.style,name:C.name,challenge:!!C.challenge,style2:C.plan?C.plan[C.acc[0]].style:null};
   $('#btnKeep').hidden=r.stars!==3;$('#btnShare').hidden=false;
   commit();show('#sRes');if(P.served===1||!P.nick)setTimeout(maybeAskNick,900);
 }
 function refuse(){
-  $('#avatar2').innerHTML=avatar(C,'ok');$('#resName').textContent=C.name;$('#reaction').textContent='原來發炎了，謝謝你提醒，我先去看醫生，好了再來！';
+  $('#avatar2').innerHTML=avatar(C,'ok');$('#resName').textContent=C.name;$('#resName').classList.add('fname');$('#reaction').textContent='原來發炎了，謝謝你提醒，我先去看醫生，好了再來！';
   $('#stars').innerHTML='<span>✦</span><span>✦</span><span class="off">✦</span>';$('#shot').hidden=true;$('#bars').innerHTML='';
   $('#notes').innerHTML='<li>判斷正確：指緣紅腫、變色時不施作，並建議客人就醫。</li><li>客人信任你，之後會回來預約。</li>';
   $('#tip').innerHTML='<small>信任小費</small>+30';P.wallet+=30;P.earned+=30;P.served++;$('#mastery').textContent='';
@@ -1498,6 +1542,15 @@ async function makeCard(res){
   x.textAlign='right';x.font=`500 34px "Courier New",monospace`;x.save();x.shadowColor='rgba(255,120,40,.9)';x.shadowBlur=10;x.fillStyle='#FF9A4A';
   x.fillText(`'${String(d.getFullYear()).slice(2)} ${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getDate()).padStart(2,'0')}`,PX+40+photo-24,PY+40+photo-26);x.restore();
   // 文字區
+  if(res.challenge&&res.stars===3){
+    const sx=PX+150,sy=PY+40+photo-110;x.save();x.translate(sx,sy);x.rotate(-.18);
+    x.shadowColor='rgba(110,70,20,.45)';x.shadowBlur=18;x.shadowOffsetY=6;
+    const g=x.createLinearGradient(-90,-90,90,90);g.addColorStop(0,'#F6E0A6');g.addColorStop(.5,'#D4AE5E');g.addColorStop(1,'#A9813A');
+    x.fillStyle=g;x.beginPath();for(let k=0;k<24;k++){const r=k%2?82:96,t=k*Math.PI/12;x.lineTo(Math.cos(t)*r,Math.sin(t)*r)}x.closePath();x.fill();x.shadowColor='transparent';
+    x.strokeStyle='rgba(255,255,255,.75)';x.lineWidth=2.5;x.setLineDash([6,5]);x.beginPath();x.arc(0,0,66,0,7);x.stroke();x.setLineDash([]);
+    x.textAlign='center';x.fillStyle='#fff';x.font=`600 16px ${sans}`;x.fillText('C H A L L E N G E',0,-26);
+    x.font=`700 44px ${serif}`;x.fillText('挑戰成功',0,22);x.restore();
+  }
   const ty=PY+40+photo;x.textAlign='left';
   x.fillStyle='#2A1B26';x.font=`700 54px ${serif}`;x.fillText(res.title,PX+48,ty+90);
   for(let k=0;k<3;k++)sparkle(x,PX+66+k*52,ty+146,22,k<res.stars?'#C9A04E':'#EADDE3');
@@ -1520,7 +1573,7 @@ async function makeCard(res){
     x.beginPath();x.moveTo(bx+120,by);x.lineTo(bx+150,by-34);x.lineTo(bx+190,by);x.fill();x.restore();
     if(av){x.save();x.beginPath();x.arc(bx+90,by+bh/2,62,0,7);x.closePath();x.fillStyle='#F6E9EE';x.fill();x.clip();x.drawImage(av,bx+28,by+bh/2-62,124,124);x.restore();
       x.strokeStyle='#F4C0D1';x.lineWidth=5;x.beginPath();x.arc(bx+90,by+bh/2,62,0,7);x.stroke()}
-    x.textAlign='left';x.fillStyle='#C2607A';x.font=`700 28px ${sans}`;x.fillText(res.name||'客人',bx+178,by+58);
+    x.textAlign='left';x.font=/[\u3400-\u9fff]/.test(res.name||'')?`700 34px ${serif}`:`italic 500 36px ${disp}`;{const g=x.createLinearGradient(bx+178,0,bx+420,0);g.addColorStop(0,'#8E3A55');g.addColorStop(.6,'#C2607A');g.addColorStop(1,'#C9A04E');x.fillStyle=g}x.fillText(res.name||'客人',bx+178,by+60);
     x.fillStyle='#2A1B26';x.font=`500 38px ${sans}`;lines.forEach((l,i)=>x.fillText(l,bx+178,by+108+i*50));
     x.restore();
   }
@@ -1538,10 +1591,10 @@ const canShareFiles=()=>{try{return !!(navigator.canShare&&navigator.canShare({f
 const POSES=[
  {id:'flat',name:'平放'},
  {id:'clasp',name:'雙手交握',src:'poses/clasp.webp',baseW:1696,crop:[360,1018,1100,1100],slots:[
-  {n:1,tip:[700,1050],base:[555,1068],w:62},{n:0,tip:[838,1092],base:[930,1225],w:92},
-  {n:2,tip:[670,1155],base:[555,1245],w:70},{n:3,tip:[705,1320],base:[590,1425],w:74},{n:4,tip:[765,1460],base:[655,1575],w:70},
-  {n:4,tip:[1090,1615],base:[1205,1625],w:58},{n:3,tip:[1122,1715],base:[1240,1805],w:78},
-  {n:2,tip:[1012,1858],base:[1140,1965],w:88},{n:1,tip:[900,1972],base:[1005,2100],w:82},{n:0,tip:[818,1755],base:[705,1865],w:78}]}];
+  {n:1,tip:[700,1050],base:[555,1068],w:62,h:'f'},{n:0,tip:[838,1092],base:[930,1225],w:92,h:'f'},
+  {n:2,tip:[670,1155],base:[555,1245],w:70,h:'f'},{n:3,tip:[705,1320],base:[590,1425],w:74,h:'f'},{n:4,tip:[765,1460],base:[655,1575],w:70,h:'f'},
+  {n:4,tip:[1090,1615],base:[1205,1625],w:58,h:'m'},{n:3,tip:[1122,1715],base:[1240,1805],w:78,h:'m'},
+  {n:2,tip:[1012,1858],base:[1140,1965],w:88,h:'m'},{n:1,tip:[900,1972],base:[1005,2100],w:82,h:'m'},{n:0,tip:[818,1755],base:[705,1865],w:78,h:'m'}]}];
 const poseCache={};
 async function renderPose(pose){
   const im=poseCache[pose.id]||(poseCache[pose.id]=await loadImg(pose.src));if(!im)return null;
@@ -1550,8 +1603,10 @@ async function renderPose(pose){
   x.drawImage(im,cx0,cy0,cw,ch,0,0,cw,ch);
   const px=x.getImageData(0,0,c.width,c.height).data;
   const skinAt=(qx,qy)=>{const i=(Math.round(qy)*c.width+Math.round(qx))*4;return `rgb(${px[i]},${px[i+1]},${px[i+2]})`};
+  // 男生客人：只做下面那隻男生的手，上面女生的手保持素甲
+  const male=C&&C.female===false;
   pose.slots.forEach(sl=>{
-    const n=nails[sl.n];if(!n)return;
+    const n=nails[sl.n];if(!n||(male&&sl.h==='f'))return;
     const tx=sl.tip[0]*f-cx0,ty=sl.tip[1]*f-cy0,bx=sl.base[0]*f-cx0,by=sl.base[1]*f-cy0,w=sl.w*f;
     const L=Math.hypot(tx-bx,ty-by),ux=(tx-bx)/L,uy=(ty-by)/L,k=L/(n.bot-n.natTop),kw=w/n.nw,mid=(n.natTop+n.bot)/2;
     const ox=bx+ux*(n.bot-mid)*k,oy=by+uy*(n.bot-mid)*k;
@@ -1583,7 +1638,7 @@ async function drawCard(){
   try{await Promise.all([`italic 500 150px "Bodoni Moda"`,`700 54px "Noto Serif TC"`,`500 38px "Noto Sans TC"`].map(f=>document.fonts.load(f)))}catch(e){}
   const pose=POSES.find(p=>p.id===cardPose);
   const poseImg=pose&&pose.src?await renderPose(pose):null;
-  const c=await makeCard({...lastRes,colors:usedColors(),title:STY[lastRes.style]||'指尖作品',quote:$('#reaction').textContent,img:C&&C.img,seed:cardSeed,poseImg});
+  const c=await makeCard({...lastRes,colors:usedColors(),title:lastRes.style2?`${STY[lastRes.style]} × ${STY[lastRes.style2]}`:STY[lastRes.style]||'指尖作品',quote:$('#reaction').textContent,img:C&&C.img,seed:cardSeed,poseImg});
   $('#cardImg').src=c.toDataURL('image/png');$('#cardModal').classList.remove('loading');
   cardBlob=await new Promise(r=>c.toBlob(r,'image/png'));
   const share=canShareFiles();
