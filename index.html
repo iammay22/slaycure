@@ -1488,7 +1488,7 @@ async function makeCard(res){
   x.font=`500 30px ${sans}`;x.fillStyle='rgba(255,255,255,.95)';x.save();x.shadowColor='rgba(150,30,80,.45)';x.shadowBlur=8;
   x.fillText(`T O D A Y ' S   S E T   ·   ${ds}`,CW/2,322);x.restore();
   // 拍立得（方形底片）
-  const PX=150,PY=400,PWd=780,photo=700,PHt=photo+40+230;
+  const PX=110,PY=390,PWd=860,photo=780,PHt=photo+40+230;
   x.save();x.translate(CW/2,PY+PHt/2);x.rotate(-.035);x.translate(-CW/2,-(PY+PHt/2));
   x.save();x.shadowColor='rgba(90,20,55,.45)';x.shadowBlur=50;x.shadowOffsetY=24;x.fillStyle='#FFFEFD';x.fillRect(PX,PY,PWd,PHt);x.restore();
   const ph=x.createLinearGradient(0,PY+40,0,PY+40+photo);ph.addColorStop(0,'#F9E8EE');ph.addColorStop(1,'#ECCAD6');x.fillStyle=ph;x.fillRect(PX+40,PY+40,photo,photo);
@@ -1537,7 +1537,7 @@ const canShareFiles=()=>{try{return !!(navigator.canShare&&navigator.canShare({f
 // 座標以原圖寬 1696 量的；tip = 指尖端、base = 指甲根部、w = 指甲寬，n = 用遊戲裡哪一片指甲（0 拇指…4 小指）
 const POSES=[
  {id:'flat',name:'平放'},
- {id:'clasp',name:'雙手交握',src:'poses/clasp.webp',baseW:1696,crop:[300,1000,1200,1200],slots:[
+ {id:'clasp',name:'雙手交握',src:'poses/clasp.webp',baseW:1696,crop:[360,1018,1100,1100],slots:[
   {n:1,tip:[700,1050],base:[555,1068],w:62},{n:0,tip:[838,1092],base:[930,1225],w:92},
   {n:2,tip:[670,1155],base:[555,1245],w:70},{n:3,tip:[705,1320],base:[590,1425],w:74},{n:4,tip:[765,1460],base:[655,1575],w:70},
   {n:4,tip:[1090,1615],base:[1205,1625],w:58},{n:3,tip:[1122,1715],base:[1240,1805],w:78},
