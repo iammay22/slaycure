@@ -265,6 +265,10 @@ h3.cat{margin:6px 0 0;font-family:var(--f-head);font-size:14px;color:var(--gold)
 .cardload{position:absolute;inset:0;display:none;place-items:center;color:#fff;font-size:14px;letter-spacing:.1em}
 .loading .cardload{display:grid}
 .cardhint{margin:0;text-align:center;font-size:12px;color:var(--muted)}
+.posebar{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.posebar span{font-size:12px;color:var(--muted);letter-spacing:.1em;margin-right:2px}
+.posebar button{border:1px solid var(--hair,#E2D5DB);background:#fff;border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted);transition:all .15s}
+.posebar button.on{background:#FBEAF0;border-color:rgba(194,96,122,.45);color:#A64A63}
 .cardrow{display:flex;gap:8px}
 .cardrow .btn{flex:1}
 .cardrow .btn[hidden]{display:none}
@@ -557,6 +561,7 @@ h3.cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(
     <div class="card cardpv">
       <button class="cardx" id="btnCardClose" aria-label="關閉"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <div class="cardframe"><img id="cardImg" alt="款式卡預覽"><span class="cardload">款式卡沖洗中…</span></div>
+      <div class="posebar" id="poseBar"></div>
       <p class="cardhint">長按圖片也可以直接存到相簿</p>
       <button class="btn wide" id="btnCardMain">分享到限動</button>
       <div class="cardrow"><button class="btn ghost" id="btnCardSub">下載圖片</button><button class="btn ghost" id="btnCardKeep" hidden>存成作品</button></div>
@@ -1487,7 +1492,7 @@ async function makeCard(res){
   x.save();x.translate(CW/2,PY+PHt/2);x.rotate(-.035);x.translate(-CW/2,-(PY+PHt/2));
   x.save();x.shadowColor='rgba(90,20,55,.45)';x.shadowBlur=50;x.shadowOffsetY=24;x.fillStyle='#FFFEFD';x.fillRect(PX,PY,PWd,PHt);x.restore();
   const ph=x.createLinearGradient(0,PY+40,0,PY+40+photo);ph.addColorStop(0,'#F9E8EE');ph.addColorStop(1,'#ECCAD6');x.fillStyle=ph;x.fillRect(PX+40,PY+40,photo,photo);
-  x.drawImage(cv,0,PH*.02,PW,PW,PX+40,PY+40,photo,photo);
+  if(res.poseImg)x.drawImage(res.poseImg,PX+40,PY+40,photo,photo);else x.drawImage(cv,0,PH*.02,PW,PW,PX+40,PY+40,photo,photo);
   const vig=x.createRadialGradient(PX+40+photo/2,PY+40+photo/2,photo*.35,PX+40+photo/2,PY+40+photo/2,photo*.75);vig.addColorStop(0,'rgba(0,0,0,0)');vig.addColorStop(1,'rgba(90,30,50,.18)');x.fillStyle=vig;x.fillRect(PX+40,PY+40,photo,photo);
   // 底片日期戳記
   x.textAlign='right';x.font=`500 34px "Courier New",monospace`;x.save();x.shadowColor='rgba(255,120,40,.9)';x.shadowBlur=10;x.fillStyle='#FF9A4A';
@@ -1528,11 +1533,57 @@ async function makeCard(res){
 }
 let cardBlob=null;
 const canShareFiles=()=>{try{return !!(navigator.canShare&&navigator.canShare({files:[new File([new Blob(['x'])],'a.png',{type:'image/png'})]}))}catch(e){return false}};
+/* ---------- 秀美甲姿勢：把畫好的指甲貼到姿勢圖上 ---------- */
+// 座標以原圖寬 1696 量的；tip = 指尖端、base = 指甲根部、w = 指甲寬，n = 用遊戲裡哪一片指甲（0 拇指…4 小指）
+const POSES=[
+ {id:'flat',name:'平放'},
+ {id:'clasp',name:'雙手交握',src:'poses/clasp.webp',baseW:1696,crop:[300,1000,1200,1200],slots:[
+  {n:1,tip:[700,1050],base:[555,1068],w:62},{n:0,tip:[838,1092],base:[930,1225],w:92},
+  {n:2,tip:[670,1155],base:[555,1245],w:70},{n:3,tip:[705,1320],base:[590,1425],w:74},{n:4,tip:[765,1460],base:[655,1575],w:70},
+  {n:4,tip:[1090,1615],base:[1205,1625],w:58},{n:3,tip:[1122,1715],base:[1240,1805],w:78},
+  {n:2,tip:[1012,1858],base:[1140,1965],w:88},{n:1,tip:[900,1972],base:[1005,2100],w:82},{n:0,tip:[818,1755],base:[705,1865],w:78}]}];
+const poseCache={};
+async function renderPose(pose){
+  const im=poseCache[pose.id]||(poseCache[pose.id]=await loadImg(pose.src));if(!im)return null;
+  const f=im.width/pose.baseW,[cx0,cy0,cw,ch]=pose.crop.map(v=>v*f);
+  const c=document.createElement('canvas');c.width=Math.round(cw);c.height=Math.round(ch);const x=c.getContext('2d');
+  x.drawImage(im,cx0,cy0,cw,ch,0,0,cw,ch);
+  const px=x.getImageData(0,0,c.width,c.height).data;
+  const skinAt=(qx,qy)=>{const i=(Math.round(qy)*c.width+Math.round(qx))*4;return `rgb(${px[i]},${px[i+1]},${px[i+2]})`};
+  pose.slots.forEach(sl=>{
+    const n=nails[sl.n];if(!n)return;
+    const tx=sl.tip[0]*f-cx0,ty=sl.tip[1]*f-cy0,bx=sl.base[0]*f-cx0,by=sl.base[1]*f-cy0,w=sl.w*f;
+    const L=Math.hypot(tx-bx,ty-by),ux=(tx-bx)/L,uy=(ty-by)/L,k=L/(n.bot-n.natTop),kw=w/n.nw,mid=(n.natTop+n.bot)/2;
+    const ox=bx+ux*(n.bot-mid)*k,oy=by+uy*(n.bot-mid)*k;
+    const [mc,mx]=mk();raw(mx);mx.drawImage(cv,0,0);mx.globalCompositeOperation='destination-in';mx.drawImage(n.mask,0,0);
+    const skin=skinAt(bx-ux*w*.45,by-uy*w*.45);
+    x.save();x.setTransform(-uy*kw,ux*kw,-ux*k,-uy*k,ox+ux*mid*k,oy+uy*mid*k);
+    // 用手指的膚色把原圖的指甲蓋掉，再貼上玩家畫的指甲
+    x.fillStyle=skin;x.fill(nailPath(n.nw*1.1,n.natTop-n.nw*.05,n.cy+n.nw*.04,'round'));
+    x.save();x.transform(n.inv.a,n.inv.b,n.inv.c,n.inv.d,n.inv.e,n.inv.f);x.scale(1/D,1/D);x.drawImage(mc,0,0);x.restore();
+    const sL=n.bot-n.top;
+    x.fillStyle='rgba(255,255,255,.55)';x.beginPath();x.roundRect(-n.nw*.26,n.top+sL*.14,n.nw*.12,sL*.34,n.nw*.06);x.fill();
+    x.fillStyle='rgba(255,255,255,.35)';x.beginPath();x.arc(n.nw*.12,n.top+sL*.2,n.nw*.05,0,7);x.fill();
+    x.lineWidth=2.4/Math.max(k,kw);x.strokeStyle='#5C2B2E';x.stroke(nailPath(n.nw,n.top,n.cy,shape));
+    x.restore();
+  });
+  return c;
+}
+let cardPose='flat',cardSeed=1;
+function poseBar(){$('#poseBar').innerHTML='<span>姿勢</span>'+POSES.map(p=>`<button data-pose="${p.id}" class="${p.id===cardPose?'on':''}">${p.name}</button>`).join('')}
+$('#poseBar').addEventListener('click',e=>{const b=e.target.closest('[data-pose]');if(!b||b.dataset.pose===cardPose)return;cardPose=b.dataset.pose;poseBar();drawCard()});
 async function openCard(){
   if(!lastRes)return;
-  $('#cardModal').hidden=false;$('#cardImg').removeAttribute('src');$('#cardModal').classList.add('loading');
+  cardSeed=Date.now()%100000+1;poseBar();
+  $('#cardModal').hidden=false;
+  await drawCard();
+}
+async function drawCard(){
+  $('#cardImg').removeAttribute('src');$('#cardModal').classList.add('loading');
   try{await Promise.all([`italic 500 150px "Bodoni Moda"`,`700 54px "Noto Serif TC"`,`500 38px "Noto Sans TC"`].map(f=>document.fonts.load(f)))}catch(e){}
-  const c=await makeCard({...lastRes,colors:usedColors(),title:STY[lastRes.style]||'指尖作品',quote:$('#reaction').textContent,img:C&&C.img,seed:Date.now()%100000+1});
+  const pose=POSES.find(p=>p.id===cardPose);
+  const poseImg=pose&&pose.src?await renderPose(pose):null;
+  const c=await makeCard({...lastRes,colors:usedColors(),title:STY[lastRes.style]||'指尖作品',quote:$('#reaction').textContent,img:C&&C.img,seed:cardSeed,poseImg});
   $('#cardImg').src=c.toDataURL('image/png');$('#cardModal').classList.remove('loading');
   cardBlob=await new Promise(r=>c.toBlob(r,'image/png'));
   const share=canShareFiles();
