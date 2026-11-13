@@ -1590,11 +1590,17 @@ const canShareFiles=()=>{try{return !!(navigator.canShare&&navigator.canShare({f
 // 座標以原圖寬 1696 量的；tip = 指尖端、base = 指甲根部、w = 指甲寬，n = 用遊戲裡哪一片指甲（0 拇指…4 小指）
 const POSES=[
  {id:'flat',name:'平放'},
- {id:'clasp',name:'雙手交握',src:'poses/clasp.webp',baseW:1696,crop:[360,1018,1100,1100],slots:[
+ {id:'clasp',name:'雙手交握',for:'f',src:'poses/clasp.webp',baseW:1696,crop:[360,1018,1100,1100],slots:[
   {n:1,tip:[700,1050],base:[555,1068],w:62,h:'f'},{n:0,tip:[838,1092],base:[930,1225],w:92,h:'f'},
   {n:2,tip:[670,1155],base:[555,1245],w:70,h:'f'},{n:3,tip:[705,1320],base:[590,1425],w:74,h:'f'},{n:4,tip:[765,1460],base:[655,1575],w:70,h:'f'},
   {n:4,tip:[1090,1615],base:[1205,1625],w:58,h:'m'},{n:3,tip:[1122,1715],base:[1240,1805],w:78,h:'m'},
-  {n:2,tip:[1012,1858],base:[1140,1965],w:88,h:'m'},{n:1,tip:[900,1972],base:[1005,2100],w:82,h:'m'},{n:0,tip:[818,1755],base:[705,1865],w:78,h:'m'}]}];
+  {n:2,tip:[1012,1858],base:[1140,1965],w:88,h:'m'},{n:1,tip:[900,1972],base:[1005,2100],w:82,h:'m'},{n:0,tip:[818,1755],base:[705,1865],w:78,h:'m'}]},
+ // 男生：雙手壓著帽簷，指尖朝上
+ {id:'cap',name:'壓帽',for:'m',src:'poses/cap.webp',baseW:1199,crop:[50,212,1100,1100],slots:[
+  {n:4,tip:[135,645],base:[120,715],w:50},{n:3,tip:[360,540],base:[325,605],w:66},{n:2,tip:[480,545],base:[450,615],w:70},
+  {n:1,tip:[550,655],base:[535,728],w:70},{n:0,tip:[585,862],base:[580,930],w:58},
+  {n:0,tip:[660,868],base:[668,935],w:55},{n:1,tip:[672,680],base:[690,752],w:66},{n:2,tip:[742,580],base:[765,650],w:72},
+  {n:3,tip:[880,520],base:[905,585],w:66},{n:4,tip:[1110,592],base:[1100,668],w:55}]}];
 const poseCache={};
 async function renderPose(pose){
   const im=poseCache[pose.id]||(poseCache[pose.id]=await loadImg(pose.src));if(!im)return null;
@@ -1603,10 +1609,8 @@ async function renderPose(pose){
   x.drawImage(im,cx0,cy0,cw,ch,0,0,cw,ch);
   const px=x.getImageData(0,0,c.width,c.height).data;
   const skinAt=(qx,qy)=>{const i=(Math.round(qy)*c.width+Math.round(qx))*4;return `rgb(${px[i]},${px[i+1]},${px[i+2]})`};
-  // 男生客人：只做下面那隻男生的手，上面女生的手保持素甲
-  const male=C&&C.female===false;
   pose.slots.forEach(sl=>{
-    const n=nails[sl.n];if(!n||(male&&sl.h==='f'))return;
+    const n=nails[sl.n];if(!n)return;
     const tx=sl.tip[0]*f-cx0,ty=sl.tip[1]*f-cy0,bx=sl.base[0]*f-cx0,by=sl.base[1]*f-cy0,w=sl.w*f;
     const L=Math.hypot(tx-bx,ty-by),ux=(tx-bx)/L,uy=(ty-by)/L,k=L/(n.bot-n.natTop),kw=w/n.nw,mid=(n.natTop+n.bot)/2;
     const ox=bx+ux*(n.bot-mid)*k,oy=by+uy*(n.bot-mid)*k;
@@ -1625,7 +1629,9 @@ async function renderPose(pose){
   return c;
 }
 let cardPose='flat',cardSeed=1;
-function poseBar(){$('#poseBar').innerHTML='<span>姿勢</span>'+POSES.map(p=>`<button data-pose="${p.id}" class="${p.id===cardPose?'on':''}">${p.name}</button>`).join('')}
+// 男生、女生客人各有自己的姿勢
+const posesFor=()=>{const g=C&&C.female===false?'m':'f';return POSES.filter(p=>!p.for||p.for===g)};
+function poseBar(){if(!posesFor().some(p=>p.id===cardPose))cardPose='flat';$('#poseBar').innerHTML='<span>姿勢</span>'+posesFor().map(p=>`<button data-pose="${p.id}" class="${p.id===cardPose?'on':''}">${p.name}</button>`).join('')}
 $('#poseBar').addEventListener('click',e=>{const b=e.target.closest('[data-pose]');if(!b||b.dataset.pose===cardPose)return;cardPose=b.dataset.pose;poseBar();drawCard()});
 async function openCard(){
   if(!lastRes)return;
